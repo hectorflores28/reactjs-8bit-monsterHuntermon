@@ -1,5 +1,5 @@
 {
-  "name": "reactjs-8bit-monsterhuntermon",
+  "name": "reactjs-monster-hanter",
   "version": "1.0.0",
   "description": "Un juego estilo Monster Hunter en 8 bits desarrollado con React y Node.js",
   "main": "server/index.js",
