@@ -360,4 +360,165 @@ export class StatusEffectVisualManager {
   getEffectScale(effect, stacks = 1) {
     return 1 + (stacks - 1) * 0.1;
   }
-} 
+}
+
+// Definición de tipos de estados alterados
+export const STATUS_EFFECT_TYPES = {
+  POSITIVE: 'positive',
+  NEGATIVE: 'negative',
+  NEUTRAL: 'neutral'
+};
+
+// Definición de categorías de estados alterados
+export const STATUS_EFFECT_CATEGORIES = {
+  ELEMENTAL: 'elemental',
+  PHYSICAL: 'physical',
+  MAGICAL: 'magical',
+  SPECIAL: 'special'
+};
+
+// Configuración de interacciones entre estados alterados
+export const STATUS_EFFECT_INTERACTIONS = {
+  // Interacciones elementales
+  FIRE: {
+    WATER: {
+      result: 'STEAM',
+      effect: {
+        type: STATUS_EFFECT_TYPES.NEUTRAL,
+        category: STATUS_EFFECT_CATEGORIES.ELEMENTAL,
+        name: 'Vapor',
+        duration: 5,
+        stats: {
+          visibility: -20,
+          speed: -10
+        }
+      }
+    },
+    ICE: {
+      result: 'MELT',
+      effect: {
+        type: STATUS_EFFECT_TYPES.POSITIVE,
+        category: STATUS_EFFECT_CATEGORIES.ELEMENTAL,
+        name: 'Derretido',
+        duration: 3,
+        stats: {
+          defense: -15,
+          speed: 10
+        }
+      }
+    }
+  },
+  WATER: {
+    FIRE: {
+      result: 'STEAM',
+      effect: {
+        type: STATUS_EFFECT_TYPES.NEUTRAL,
+        category: STATUS_EFFECT_CATEGORIES.ELEMENTAL,
+        name: 'Vapor',
+        duration: 5,
+        stats: {
+          visibility: -20,
+          speed: -10
+        }
+      }
+    },
+    ICE: {
+      result: 'FROZEN',
+      effect: {
+        type: STATUS_EFFECT_TYPES.NEGATIVE,
+        category: STATUS_EFFECT_CATEGORIES.ELEMENTAL,
+        name: 'Congelado',
+        duration: 4,
+        stats: {
+          speed: -30,
+          attack: -20
+        }
+      }
+    }
+  },
+  ICE: {
+    FIRE: {
+      result: 'MELT',
+      effect: {
+        type: STATUS_EFFECT_TYPES.POSITIVE,
+        category: STATUS_EFFECT_CATEGORIES.ELEMENTAL,
+        name: 'Derretido',
+        duration: 3,
+        stats: {
+          defense: -15,
+          speed: 10
+        }
+      }
+    },
+    WATER: {
+      result: 'FROZEN',
+      effect: {
+        type: STATUS_EFFECT_TYPES.NEGATIVE,
+        category: STATUS_EFFECT_CATEGORIES.ELEMENTAL,
+        name: 'Congelado',
+        duration: 4,
+        stats: {
+          speed: -30,
+          attack: -20
+        }
+      }
+    }
+  },
+
+  // Interacciones físicas
+  BLEED: {
+    POISON: {
+      result: 'TOXIC_BLEED',
+      effect: {
+        type: STATUS_EFFECT_TYPES.NEGATIVE,
+        category: STATUS_EFFECT_CATEGORIES.PHYSICAL,
+        name: 'Sangrado Tóxico',
+        duration: 6,
+        stats: {
+          health: -5,
+          defense: -10
+        }
+      }
+    }
+  },
+
+  // Interacciones mágicas
+  SHIELD: {
+    DISPEL: {
+      result: 'SHATTER',
+      effect: {
+        type: STATUS_EFFECT_TYPES.NEGATIVE,
+        category: STATUS_EFFECT_CATEGORIES.MAGICAL,
+        name: 'Escudo Destruido',
+        duration: 2,
+        stats: {
+          defense: -25,
+          magicResist: -20
+        }
+      }
+    }
+  }
+};
+
+// Función para calcular la interacción entre dos estados alterados
+export const calculateStatusEffectInteraction = (effect1, effect2) => {
+  const interaction = STATUS_EFFECT_INTERACTIONS[effect1.type]?.[effect2.type];
+  if (!interaction) return null;
+
+  return {
+    ...interaction.effect,
+    id: `${effect1.id}_${effect2.id}_${interaction.result}`,
+    source: [effect1.id, effect2.id]
+  };
+};
+
+// Función para determinar si dos estados alterados pueden interactuar
+export const canStatusEffectsInteract = (effect1, effect2) => {
+  return !!STATUS_EFFECT_INTERACTIONS[effect1.type]?.[effect2.type];
+};
+
+// Función para obtener el resultado de una interacción
+export const getInteractionResult = (effect1, effect2) => {
+  const interaction = STATUS_EFFECT_INTERACTIONS[effect1.type]?.[effect2.type];
+  return interaction?.result || null;
+}; 

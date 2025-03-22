@@ -1,5 +1,15 @@
 import { create } from 'zustand';
 import axios from 'axios';
+import { 
+  calculateStatusEffectInteraction,
+  canStatusEffectsInteract,
+  getInteractionResult
+} from '../config/statusEffectInteractions';
+import {
+  calculateSkillDamage,
+  checkComboChain,
+  applyComboBonus
+} from '../config/comboSystem';
 
 const API_URL = '/api';
 
@@ -11,6 +21,8 @@ const useCombatStore = create((set, get) => ({
     statusEffects: [],
     skills: [],
     comboProgress: 0,
+    comboPoints: 0,
+    lastUsedSkills: [],
     isInCombat: false
   },
   loading: false,
@@ -29,7 +41,9 @@ const useCombatStore = create((set, get) => ({
         combat: {
           ...get().combat,
           ...response.data.combat,
-          isInCombat: true
+          isInCombat: true,
+          lastUsedSkills: [],
+          comboPoints: 0
         },
         loading: false
       });
@@ -43,19 +57,44 @@ const useCombatStore = create((set, get) => ({
 
   useSkill: async (skillId) => {
     try {
+      const currentCombat = get().combat;
+      const skill = currentCombat.skills.find(s => s.id === skillId);
+      
+      if (!skill) {
+        throw new Error('Habilidad no encontrada');
+      }
+
+      // Calcular daño con bonus de combo
+      const comboChain = checkComboChain([...currentCombat.lastUsedSkills, skill]);
+      const enhancedSkill = applyComboBonus(skill, comboChain);
+      const finalDamage = calculateSkillDamage(enhancedSkill, currentCombat.comboPoints);
+
       set({ loading: true, error: null });
       const response = await axios.post(
         `${API_URL}/combat/skill`,
-        { skillId },
+        { 
+          skillId,
+          damage: finalDamage,
+          comboChain: comboChain?.id
+        },
         { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } }
       );
+
+      // Actualizar estado del combate
+      const newLastUsedSkills = [...currentCombat.lastUsedSkills, skill].slice(-3);
+      const newComboPoints = currentCombat.comboPoints + skill.comboPoints;
+
       set({
         combat: {
-          ...get().combat,
-          ...response.data.combat
+          ...currentCombat,
+          ...response.data.combat,
+          lastUsedSkills: newLastUsedSkills,
+          comboPoints: newComboPoints,
+          comboProgress: Math.min(100, (newComboPoints / 5) * 100)
         },
         loading: false
       });
+
       return response.data.result;
     } catch (error) {
       set({
@@ -90,10 +129,16 @@ const useCombatStore = create((set, get) => ({
         }
       });
     } else {
+      // Verificar interacciones con efectos existentes
+      const interactions = currentEffects
+        .filter(e => canStatusEffectsInteract(effect, e))
+        .map(e => calculateStatusEffectInteraction(effect, e))
+        .filter(Boolean);
+
       set({
         combat: {
           ...get().combat,
-          statusEffects: [...currentEffects, effect]
+          statusEffects: [...currentEffects, effect, ...interactions]
         }
       });
     }
@@ -122,7 +167,9 @@ const useCombatStore = create((set, get) => ({
     set({
       combat: {
         ...get().combat,
-        comboProgress: 0
+        comboProgress: 0,
+        comboPoints: 0,
+        lastUsedSkills: []
       }
     });
   },
@@ -153,7 +200,9 @@ const useCombatStore = create((set, get) => ({
           ...get().combat,
           isInCombat: false,
           statusEffects: [],
-          comboProgress: 0
+          comboProgress: 0,
+          comboPoints: 0,
+          lastUsedSkills: []
         },
         loading: false
       });
