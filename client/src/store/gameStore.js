@@ -1,5 +1,6 @@
 import create from 'zustand';
 import { WEAPONS, MONSTERS, STATUS_EFFECTS } from '../config/combatConfig';
+import { QuestManager } from '../managers/QuestManager';
 
 const useGameStore = create((set, get) => ({
   // Estado del jugador
@@ -10,20 +11,27 @@ const useGameStore = create((set, get) => ({
     maxStamina: 100,
     level: 1,
     experience: 0,
-    experienceToNextLevel: 1000,
-    money: 0,
-    weapon: 'GREAT_SWORD',
-    inventory: [],
-    statusEffects: []
+    gold: 0,
+    inventory: new Map(),
+    equipment: {
+      weapon: 'GREAT_SWORD',
+      armor: null,
+      accessories: []
+    }
   },
 
-  // Estado del monstruo
+  // Estado del monstruo actual
   monster: null,
 
   // Estado del combate
   isInCombat: false,
   currentAction: null,
   comboSequence: [],
+
+  // Sistema de misiones
+  questManager: new QuestManager(),
+  activeQuests: [],
+  questNotifications: [],
 
   // Acciones
   startCombat: (monsterType) => {
@@ -41,7 +49,20 @@ const useGameStore = create((set, get) => ({
     });
   },
 
-  endCombat: () => {
+  endCombat: (rewards = null) => {
+    const state = get();
+    
+    if (rewards) {
+      state.updatePlayerExperience(rewards.experience);
+      state.updatePlayerGold(rewards.gold);
+      rewards.materials.forEach(material => {
+        state.addToInventory(material);
+      });
+
+      // Actualizar progreso de misiones
+      state.questManager.onMonsterDefeated(state.monster.type);
+    }
+
     set({
       monster: null,
       isInCombat: false,
@@ -50,32 +71,90 @@ const useGameStore = create((set, get) => ({
     });
   },
 
-  updatePlayerHealth: (newHealth) => {
-    set(state => ({
+  updatePlayerHealth: (health) => set(state => ({
+    player: {
+      ...state.player,
+      health: Math.max(0, Math.min(health, state.player.maxHealth))
+    }
+  })),
+
+  updateMonsterHealth: (health) => set(state => ({
+    monster: {
+      ...state.monster,
+      health: Math.max(0, health)
+    }
+  })),
+
+  updatePlayerStamina: (stamina) => set(state => ({
+    player: {
+      ...state.player,
+      stamina: Math.max(0, Math.min(stamina, state.player.maxStamina))
+    }
+  })),
+
+  updatePlayerExperience: (experience) => set(state => {
+    const newExperience = state.player.experience + experience;
+    const experienceToLevel = state.player.level * 1000;
+    
+    if (newExperience >= experienceToLevel) {
+      return {
+        player: {
+          ...state.player,
+          level: state.player.level + 1,
+          experience: newExperience - experienceToLevel,
+          maxHealth: state.player.maxHealth + 10,
+          maxStamina: state.player.maxStamina + 5,
+          health: state.player.maxHealth + 10,
+          stamina: state.player.maxStamina + 5
+        }
+      };
+    }
+
+    return {
       player: {
         ...state.player,
-        health: Math.max(0, Math.min(newHealth, state.player.maxHealth))
+        experience: newExperience
       }
-    }));
-  },
+    };
+  }),
 
-  updateMonsterHealth: (newHealth) => {
-    set(state => ({
-      monster: state.monster ? {
-        ...state.monster,
-        health: Math.max(0, Math.min(newHealth, state.monster.maxHealth))
-      } : null
-    }));
-  },
+  updatePlayerGold: (gold) => set(state => ({
+    player: {
+      ...state.player,
+      gold: Math.max(0, state.player.gold + gold)
+    }
+  })),
 
-  updatePlayerStamina: (newStamina) => {
-    set(state => ({
+  addToInventory: (itemId, quantity = 1) => set(state => {
+    const newInventory = new Map(state.player.inventory);
+    const currentQuantity = newInventory.get(itemId) || 0;
+    newInventory.set(itemId, currentQuantity + quantity);
+
+    return {
       player: {
         ...state.player,
-        stamina: Math.max(0, Math.min(newStamina, state.player.maxStamina))
+        inventory: newInventory
       }
-    }));
-  },
+    };
+  }),
+
+  removeFromInventory: (itemId, quantity = 1) => set(state => {
+    const newInventory = new Map(state.player.inventory);
+    const currentQuantity = newInventory.get(itemId) || 0;
+    
+    if (currentQuantity <= quantity) {
+      newInventory.delete(itemId);
+    } else {
+      newInventory.set(itemId, currentQuantity - quantity);
+    }
+
+    return {
+      player: {
+        ...state.player,
+        inventory: newInventory
+      }
+    };
+  }),
 
   addExperience: (amount) => {
     set(state => {
@@ -181,6 +260,55 @@ const useGameStore = create((set, get) => ({
 
   clearComboSequence: () => {
     set({ comboSequence: [] });
+  },
+
+  // Acciones de misiones
+  initializeQuests: () => {
+    const state = get();
+    state.questManager.initializeQuests();
+    set({
+      activeQuests: state.questManager.getActiveQuests()
+    });
+  },
+
+  startQuest: (questId) => {
+    const state = get();
+    if (state.questManager.startQuest(questId)) {
+      set({
+        activeQuests: state.questManager.getActiveQuests()
+      });
+    }
+  },
+
+  abandonQuest: (questId) => {
+    const state = get();
+    if (state.questManager.abandonQuest(questId)) {
+      set({
+        activeQuests: state.questManager.getActiveQuests()
+      });
+    }
+  },
+
+  addQuestNotification: (notification) => set(state => ({
+    questNotifications: [...state.questNotifications, {
+      ...notification,
+      id: Date.now()
+    }]
+  })),
+
+  removeQuestNotification: (notificationId) => set(state => ({
+    questNotifications: state.questNotifications.filter(n => n.id !== notificationId)
+  })),
+
+  // Eventos de juego
+  onComboPerformed: (comboType) => {
+    const state = get();
+    state.questManager.onComboPerformed(comboType);
+  },
+
+  onItemCollected: (itemId) => {
+    const state = get();
+    state.questManager.onItemCollected(itemId);
   }
 }));
 
