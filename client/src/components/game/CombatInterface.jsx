@@ -15,6 +15,7 @@ import { StatusEffectManager, StatusEffectApplier } from '../../config/statusEff
 import { StatusEffectInteractionManager, StatusEffectVisualManager } from '../../config/statusEffectInteractions';
 import { ATTACK_POSITIONS, WEAPONS, MONSTERS, COMBAT_EFFECTS } from '../../config/combatConfig';
 import ComboProgressDisplay from './ComboProgressDisplay';
+import PositionIndicator from './PositionIndicator';
 
 const CombatContainer = styled.div`
   position: fixed;
@@ -430,7 +431,6 @@ const CombatInterface = () => {
         statusEffectManager.current.extendEffect(effect1, target, action.duration);
         break;
       case 'SPREAD':
-        // Implementar lógica de propagación de efectos
         handleEffectSpread(effect1, target, action.radius);
         break;
       case 'FREEZE':
@@ -442,7 +442,6 @@ const CombatInterface = () => {
   };
 
   const handleEffectSpread = (effect, source, radius) => {
-    // Implementar lógica de propagación de efectos
     const targets = getTargetsInRadius(source, radius);
     targets.forEach(target => {
       statusEffectManager.current.applyEffect(effect, target);
@@ -450,7 +449,6 @@ const CombatInterface = () => {
   };
 
   const getTargetsInRadius = (source, radius) => {
-    // Implementar lógica para obtener objetivos en el radio
     const targets = [];
     if (source === 'player') {
       targets.push('monster');
@@ -489,6 +487,9 @@ const CombatInterface = () => {
     if (player.stamina < 20) return;
 
     const weapon = WEAPONS[player.weapon];
+    const attackPosition = calculateAttackPosition();
+    const positionMultiplier = attackPosition.damageMultiplier;
+    
     const damage = type === 'light' ? weapon.baseDamage : 
                   type === 'heavy' ? weapon.baseDamage * 1.5 : 
                   weapon.baseDamage * 2;
@@ -497,12 +498,12 @@ const CombatInterface = () => {
 
     // Calcular daño con modificadores
     const modifiers = statusEffectManager.current.calculateStatModifiers('player');
-    const finalDamage = Math.floor(damage * modifiers.damageMultiplier);
+    const finalDamage = Math.floor(damage * modifiers.damageMultiplier * positionMultiplier);
 
     updateMonsterHealth(monster.health - finalDamage);
     updatePlayerStamina(player.stamina - staminaCost);
 
-    addToCombatLog(`Jugador causa ${finalDamage} de daño!`, 'damage');
+    addToCombatLog(`¡${attackPosition.name}! Jugador causa ${finalDamage} de daño!`, 'damage');
     
     // Actualizar secuencia de combo
     setCurrentSequence(prev => [...prev, type]);
@@ -600,6 +601,10 @@ const CombatInterface = () => {
       { message, type, timestamp: Date.now() },
       ...prev.slice(0, 9)
     ]);
+  };
+
+  const handlePositionChange = (newPosition) => {
+    setPlayerPosition(newPosition);
   };
 
   if (!isInCombat || !monster) return null;
@@ -735,6 +740,11 @@ const CombatInterface = () => {
           ))}
         </AnimatePresence>
       </CombatLog>
+
+      <PositionIndicator
+        position={calculateAttackPosition()}
+        onPositionChange={handlePositionChange}
+      />
     </CombatContainer>
   );
 };

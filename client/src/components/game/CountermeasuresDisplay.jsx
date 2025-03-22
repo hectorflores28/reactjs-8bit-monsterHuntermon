@@ -1,121 +1,95 @@
 import React from 'react';
 import styled from 'styled-components';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { StatusEffectInteractionManager } from '../../config/statusEffectInteractions';
 
-const CountermeasuresContainer = styled.div`
+const CountermeasuresContainer = styled(motion.div)`
   position: fixed;
-  top: 20px;
+  bottom: 100px;
   right: 20px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 10px;
+  border-radius: 10px;
   z-index: 1000;
 `;
 
-const CountermeasureButton = styled(motion.button)`
-  background-color: rgba(0, 0, 0, 0.7);
-  color: white;
-  border: 2px solid ${props => props.disabled ? '#666' : '#44ff44'};
-  border-radius: 5px;
-  padding: 8px 12px;
-  font-family: 'Press Start 2P', monospace;
-  font-size: 10px;
-  cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
+const CountermeasureItem = styled(motion.div)`
   display: flex;
   align-items: center;
-  gap: 8px;
-  width: 150px;
-  position: relative;
-  overflow: hidden;
-
-  &:hover {
-    background-color: ${props => props.disabled ? 'rgba(0, 0, 0, 0.7)' : 'rgba(68, 255, 68, 0.2)'};
-  }
+  gap: 10px;
+  padding: 5px 10px;
+  background-color: ${props => props.disabled ? '#666' : '#444'};
+  border-radius: 5px;
+  cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
+  opacity: ${props => props.disabled ? 0.5 : 1};
 `;
 
-const CountermeasureIcon = styled.div`
-  width: 24px;
-  height: 24px;
+const ItemIcon = styled.div`
+  width: 32px;
+  height: 32px;
   background-image: url(${props => props.sprite});
   background-size: cover;
 `;
 
-const CountermeasureName = styled.span`
-  flex: 1;
-  text-align: left;
-`;
-
-const CountermeasureCount = styled.span`
-  color: #44ff44;
-  font-size: 8px;
-`;
-
-const CooldownOverlay = styled(motion.div)`
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.7);
+const ItemInfo = styled.div`
   display: flex;
-  align-items: center;
-  justify-content: center;
+  flex-direction: column;
+  gap: 2px;
+`;
+
+const ItemName = styled.div`
   color: white;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+`;
+
+const ItemCount = styled.div`
+  color: #44ff44;
+  font-family: 'Press Start 2P', monospace;
   font-size: 8px;
 `;
 
-const CountermeasuresDisplay = ({ 
-  activeEffects, 
-  inventory, 
-  onUseCountermeasure,
-  disabled 
-}) => {
+const CountermeasuresDisplay = ({ activeEffects, inventory, onUseCountermeasure, disabled }) => {
   const interactionManager = new StatusEffectInteractionManager();
 
-  const getCountermeasureCount = (itemType) => {
-    return inventory[itemType] || 0;
+  const getCountermeasureForEffect = (effect) => {
+    const countermeasure = interactionManager.getCountermeasure(effect);
+    if (!countermeasure) return null;
+
+    return {
+      ...countermeasure,
+      count: inventory[countermeasure.item] || 0
+    };
   };
 
-  const handleCountermeasureClick = (effect, type) => {
-    if (disabled || getCountermeasureCount(type) <= 0) return;
-    onUseCountermeasure(effect, type);
-  };
+  const availableCountermeasures = activeEffects
+    .map(effect => getCountermeasureForEffect(effect.type))
+    .filter(countermeasure => countermeasure && countermeasure.count > 0);
 
   return (
-    <CountermeasuresContainer>
-      <AnimatePresence>
-        {activeEffects.map((effect) => {
-          const countermeasure = interactionManager.getCountermeasure(effect.type);
-          if (!countermeasure) return null;
-
-          const itemCount = getCountermeasureCount(countermeasure.item);
-          const isDisabled = disabled || itemCount <= 0;
-
-          return (
-            <CountermeasureButton
-              key={effect.type}
-              disabled={isDisabled}
-              onClick={() => handleCountermeasureClick(effect.type, countermeasure.item)}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              <CountermeasureIcon sprite={`/assets/sprites/items/${countermeasure.item.toLowerCase()}.png`} />
-              <CountermeasureName>{countermeasure.item}</CountermeasureName>
-              <CountermeasureCount>{itemCount}</CountermeasureCount>
-              {effect.cooldown > 0 && (
-                <CooldownOverlay
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                >
-                  {Math.ceil(effect.cooldown / 1000)}s
-                </CooldownOverlay>
-              )}
-            </CountermeasureButton>
-          );
-        })}
-      </AnimatePresence>
+    <CountermeasuresContainer
+      initial={{ opacity: 0, x: 100 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: 100 }}
+    >
+      {availableCountermeasures.map((countermeasure) => (
+        <CountermeasureItem
+          key={countermeasure.item}
+          disabled={disabled}
+          whileHover={{ scale: disabled ? 1 : 1.05 }}
+          whileTap={{ scale: disabled ? 1 : 0.95 }}
+          onClick={() => !disabled && onUseCountermeasure(countermeasure.effect, countermeasure.item)}
+        >
+          <ItemIcon sprite={`/assets/sprites/items/${countermeasure.item.toLowerCase()}.png`} />
+          <ItemInfo>
+            <ItemName>{countermeasure.item}</ItemName>
+            <ItemCount>x{countermeasure.count}</ItemCount>
+          </ItemInfo>
+        </CountermeasureItem>
+      ))}
     </CountermeasuresContainer>
   );
 };

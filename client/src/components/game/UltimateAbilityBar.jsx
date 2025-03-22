@@ -1,31 +1,31 @@
 import React from 'react';
 import styled from 'styled-components';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
-const UltimateContainer = styled.div`
+const UltimateContainer = styled(motion.div)`
   position: fixed;
-  bottom: 160px;
+  bottom: 20px;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 5px;
   z-index: 1000;
 `;
 
 const EnergyBar = styled.div`
   width: 200px;
-  height: 15px;
-  background-color: rgba(0, 0, 0, 0.7);
-  border-radius: 8px;
+  height: 10px;
+  background-color: #333;
+  border-radius: 5px;
   overflow: hidden;
   position: relative;
 `;
 
 const EnergyFill = styled(motion.div)`
   height: 100%;
-  background: linear-gradient(90deg, #00ff00, #00ffff);
+  background: linear-gradient(90deg, #44ff44, #00ff00);
   width: ${props => props.energy}%;
   position: relative;
   overflow: hidden;
@@ -35,8 +35,8 @@ const EnergyFill = styled(motion.div)`
     position: absolute;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
+    width: 100%;
+    height: 100%;
     background: linear-gradient(
       90deg,
       transparent,
@@ -57,20 +57,25 @@ const EnergyFill = styled(motion.div)`
 `;
 
 const UltimateButton = styled(motion.button)`
-  padding: 10px 20px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
   background-color: ${props => props.disabled ? '#666' : '#444'};
-  color: white;
-  border: none;
-  border-radius: 5px;
+  border: 2px solid ${props => props.disabled ? '#999' : '#44ff44'};
   cursor: ${props => props.disabled ? 'not-allowed' : 'pointer'};
-  font-family: 'Press Start 2P', monospace;
-  font-size: 12px;
   position: relative;
   overflow: hidden;
-  width: 200px;
+  opacity: ${props => props.disabled ? 0.5 : 1};
 
-  &:hover {
-    background-color: ${props => props.disabled ? '#666' : '#555'};
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(68,255,68,0.2) 0%, transparent 70%);
+    opacity: ${props => props.disabled ? 0 : 1};
   }
 `;
 
@@ -85,7 +90,8 @@ const CooldownOverlay = styled(motion.div)`
   align-items: center;
   justify-content: center;
   color: white;
-  font-size: 10px;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 12px;
 `;
 
 const UltimateName = styled.div`
@@ -93,23 +99,20 @@ const UltimateName = styled.div`
   font-family: 'Press Start 2P', monospace;
   font-size: 10px;
   text-align: center;
-  margin-bottom: 5px;
+  margin-top: 5px;
 `;
 
-const UltimateAbilityBar = ({
-  ultimateAbility,
-  currentEnergy,
-  onUltimateUse,
-  disabled,
-  cooldown
-}) => {
+const UltimateAbilityBar = ({ ultimateAbility, currentEnergy, onUltimateUse, disabled, cooldown }) => {
   const formatCooldown = (ms) => {
     return Math.ceil(ms / 1000);
   };
 
   return (
-    <UltimateContainer>
-      <UltimateName>{ultimateAbility.name}</UltimateName>
+    <UltimateContainer
+      initial={{ opacity: 0, y: 100 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 100 }}
+    >
       <EnergyBar>
         <EnergyFill
           energy={currentEnergy}
@@ -119,12 +122,11 @@ const UltimateAbilityBar = ({
         />
       </EnergyBar>
       <UltimateButton
-        onClick={() => onUltimateUse(ultimateAbility)}
-        disabled={disabled || currentEnergy < 100 || cooldown > 0}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
+        disabled={disabled || cooldown > 0}
+        onClick={() => !disabled && cooldown === 0 && onUltimateUse(ultimateAbility)}
+        whileHover={{ scale: disabled ? 1 : 1.1 }}
+        whileTap={{ scale: disabled ? 1 : 0.9 }}
       >
-        {ultimateAbility.name}
         {cooldown > 0 && (
           <CooldownOverlay
             initial={{ opacity: 0 }}
@@ -135,6 +137,7 @@ const UltimateAbilityBar = ({
           </CooldownOverlay>
         )}
       </UltimateButton>
+      <UltimateName>{ultimateAbility.name}</UltimateName>
     </UltimateContainer>
   );
 };

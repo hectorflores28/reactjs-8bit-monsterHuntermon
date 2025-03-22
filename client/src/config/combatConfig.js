@@ -12,10 +12,26 @@ export const DAMAGE_TYPES = {
 
 // Posiciones de ataque
 export const ATTACK_POSITIONS = {
-  FRONT: 'front',
-  BACK: 'back',
-  SIDE: 'side',
-  AERIAL: 'aerial'
+  FRONT: {
+    name: 'Frontal',
+    damageMultiplier: 1.0,
+    description: 'Posición básica de ataque'
+  },
+  BACK: {
+    name: 'Espalda',
+    damageMultiplier: 1.5,
+    description: 'Daño aumentado por ataque desde atrás'
+  },
+  SIDE: {
+    name: 'Lateral',
+    damageMultiplier: 1.2,
+    description: 'Daño moderadamente aumentado desde los lados'
+  },
+  AERIAL: {
+    name: 'Aéreo',
+    damageMultiplier: 1.3,
+    description: 'Daño aumentado por ataque desde el aire'
+  }
 };
 
 // Estados alterados
@@ -448,44 +464,42 @@ export const COMBAT_EFFECTS = {
 // Configuración de recompensas
 export const REWARDS = {
   EXPERIENCE: {
-    RATHALOS: 1000,
-    DIABLOS: 1200,
-    NERGIGANTE: 1500
+    SMALL: 100,
+    MEDIUM: 250,
+    LARGE: 500,
+    BOSS: 1000
   },
   MATERIALS: {
-    RATHALOS: {
-      common: ['Rathalos Scale', 'Rathalos Claw'],
-      rare: ['Rathalos Plate', 'Rathalos Ruby']
-    },
-    DIABLOS: {
-      common: ['Diablos Shell', 'Diablos Fang'],
-      rare: ['Diablos Carapace', 'Diablos Medulla']
-    },
-    NERGIGANTE: {
-      common: ['Nergigante Scale', 'Nergigante Talon'],
-      rare: ['Nergigante Gem', 'Nergigante Horn']
-    }
+    SMALL: ['common_material'],
+    MEDIUM: ['common_material', 'uncommon_material'],
+    LARGE: ['uncommon_material', 'rare_material'],
+    BOSS: ['rare_material', 'legendary_material']
   },
   MONEY: {
-    RATHALOS: 5000,
-    DIABLOS: 6000,
-    NERGIGANTE: 7500
+    SMALL: 50,
+    MEDIUM: 100,
+    LARGE: 200,
+    BOSS: 500
   },
   BONUS_REWARDS: {
     SPEED_KILL: {
+      timeThreshold: 60000, // 60 segundos
       multiplier: 1.5,
-      timeThreshold: 300000 // 5 minutos
+      description: 'Bonus por victoria rápida'
     },
     NO_DAMAGE: {
-      multiplier: 2.0
+      multiplier: 2.0,
+      description: 'Bonus por no recibir daño'
     },
     COMBO_MASTER: {
+      requiredCombos: 5,
       multiplier: 1.3,
-      requiredCombos: 5
+      description: 'Bonus por maestría de combos'
     },
     STATUS_EFFECT: {
+      requiredEffects: 3,
       multiplier: 1.2,
-      requiredEffects: 3
+      description: 'Bonus por aplicar efectos de estado'
     }
   }
 }; 
