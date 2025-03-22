@@ -6,8 +6,11 @@ import MonsterAnimation from './MonsterAnimation';
 import CombatEffects from './CombatEffects';
 import CombatSound from './CombatSound';
 import StatusEffectsDisplay from './StatusEffectsDisplay';
+import ComboSystem from './ComboSystem';
+import UltimateAbilityBar from './UltimateAbilityBar';
 import { MonsterAI } from '../../config/monsterAI';
 import { StatusEffectManager, StatusEffectApplier } from '../../config/statusEffects';
+import { ATTACK_POSITIONS, WEAPONS, MONSTERS, COMBAT_EFFECTS } from '../../config/combatConfig';
 
 const CombatContainer = styled.div`
   position: fixed;
@@ -131,66 +134,109 @@ const CombatInterface = () => {
   const [isDefeat, setIsDefeat] = useState(false);
   const [playerEffects, setPlayerEffects] = useState([]);
   const [monsterEffects, setMonsterEffects] = useState([]);
+  const [currentEnergy, setCurrentEnergy] = useState(0);
+  const [ultimateCooldown, setUltimateCooldown] = useState(0);
+  const [playerPosition, setPlayerPosition] = useState({ x: 0, y: 0 });
+  const [monsterPosition, setMonsterPosition] = useState({ x: 0, y: 0 });
+  const [comboCount, setComboCount] = useState(0);
+  const [statusEffectCount, setStatusEffectCount] = useState(0);
+  const [combatStartTime, setCombatStartTime] = useState(null);
 
   const monsterAI = useRef(null);
   const statusEffectManager = useRef(new StatusEffectManager());
   const statusEffectApplier = useRef(new StatusEffectApplier(statusEffectManager.current));
+  const combatTimer = useRef(null);
 
   useEffect(() => {
     if (isInCombat && monster) {
-      // Inicializar IA del monstruo
+      setCombatStartTime(Date.now());
       monsterAI.current = new MonsterAI(monster.type);
+      startCombatTimer();
+    }
+    return () => {
+      if (combatTimer.current) {
+        clearInterval(combatTimer.current);
+      }
+    };
+  }, [isInCombat, monster]);
 
-      // Iniciar el ciclo de actualización de la IA
-      const aiUpdateInterval = setInterval(() => {
-        if (!monsterAI.current) return;
-
+  const startCombatTimer = () => {
+    combatTimer.current = setInterval(() => {
+      // Actualizar posiciones y calcular distancia
+      updatePositions();
+      
+      // Actualizar IA del monstruo
+      if (monsterAI.current) {
         const conditions = {
           health: monster.health / monster.maxHealth,
           playerDistance: calculateDistance(),
-          playerAttacking: currentAction !== null
+          playerAttacking: currentAction !== null,
+          playerPosition: playerPosition,
+          monsterPosition: monsterPosition
         };
 
-        // Actualizar estado del monstruo
         const stateChanged = monsterAI.current.updateState(conditions);
         if (stateChanged) {
           setMonsterAction(monsterAI.current.currentState);
         }
 
-        // Seleccionar y ejecutar acción
         const pattern = monsterAI.current.selectAttackPattern(conditions);
         if (monsterAI.current.checkCooldown(pattern)) {
           executeMonsterAction(pattern);
         }
+      }
 
-        // Actualizar efectos de estado
-        statusEffectManager.current.update();
-        updateStatusEffects();
-      }, 1000);
+      // Actualizar efectos de estado
+      statusEffectManager.current.update();
+      updateStatusEffects();
 
-      return () => clearInterval(aiUpdateInterval);
-    }
-  }, [isInCombat, monster, currentAction]);
+      // Actualizar cooldown de habilidad definitiva
+      if (ultimateCooldown > 0) {
+        setUltimateCooldown(prev => Math.max(0, prev - 1000));
+      }
+    }, 1000);
+  };
+
+  const updatePositions = () => {
+    // Simular movimiento del jugador y monstruo
+    setPlayerPosition(prev => ({
+      x: prev.x + (Math.random() - 0.5) * 0.1,
+      y: prev.y + (Math.random() - 0.5) * 0.1
+    }));
+    setMonsterPosition(prev => ({
+      x: prev.x + (Math.random() - 0.5) * 0.1,
+      y: prev.y + (Math.random() - 0.5) * 0.1
+    }));
+  };
 
   const calculateDistance = () => {
-    // Implementar cálculo de distancia entre jugador y monstruo
-    return 2; // Valor temporal
+    const dx = playerPosition.x - monsterPosition.x;
+    const dy = playerPosition.y - monsterPosition.y;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
+  const calculateAttackPosition = () => {
+    const dx = monsterPosition.x - playerPosition.x;
+    const dy = monsterPosition.y - playerPosition.y;
+    const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+
+    if (angle > -45 && angle <= 45) return ATTACK_POSITIONS.SIDE;
+    if (angle > 45 && angle <= 135) return ATTACK_POSITIONS.BACK;
+    if (angle > 135 || angle <= -135) return ATTACK_POSITIONS.SIDE;
+    return ATTACK_POSITIONS.FRONT;
   };
 
   const executeMonsterAction = (pattern) => {
     setIsMonsterAttacking(true);
     setMonsterAction(pattern.name);
 
-    // Calcular daño con modificadores
     const baseDamage = monster.baseDamage;
     const modifiers = statusEffectManager.current.calculateStatModifiers('monster');
     const damage = Math.floor(baseDamage * pattern.damage * modifiers.damageMultiplier);
 
-    // Aplicar daño al jugador
     updatePlayerHealth(player.health - damage);
     addToCombatLog(`Monstruo causa ${damage} de daño!`, 'damage');
 
-    // Añadir efectos visuales
     setEffects(prev => [...prev, {
       type: 'HIT',
       position: { x: window.innerWidth / 2, y: window.innerHeight / 2 },
@@ -198,11 +244,129 @@ const CombatInterface = () => {
       duration: pattern.name === 'special' ? 1500 : 1000
     }]);
 
-    // Resetear estado de ataque
     setTimeout(() => {
       setIsMonsterAttacking(false);
       setMonsterAction('IDLE');
     }, 1000);
+  };
+
+  const handleCombo = (combo) => {
+    const weapon = WEAPONS[player.weapon];
+    const attackPosition = calculateAttackPosition();
+    const positionMultiplier = weapon.specialAbility.positionMultipliers[attackPosition] || 1;
+    
+    const damage = Math.floor(combo.damage * positionMultiplier);
+    updateMonsterHealth(monster.health - damage);
+    updatePlayerStamina(player.stamina - combo.staminaCost);
+
+    addToCombatLog(`¡${combo.name} causa ${damage} de daño!`, 'damage');
+    
+    setCurrentAction('combo');
+    setEffects(prev => [...prev, {
+      type: 'COMBO_FINISH',
+      position: { x: window.innerWidth / 2, y: window.innerHeight / 2 },
+      scale: 1.5,
+      duration: 1500
+    }]);
+
+    // Aplicar efectos de estado
+    combo.statusEffects.forEach(effect => {
+      statusEffectApplier.current.applyEffectFromAbility('monster', effect);
+    });
+
+    // Aumentar contadores
+    setComboCount(prev => prev + 1);
+    setStatusEffectCount(prev => prev + combo.statusEffects.length);
+
+    // Aumentar energía
+    setCurrentEnergy(prev => Math.min(100, prev + combo.energyGain));
+
+    // Verificar victoria
+    if (monster.health <= damage) {
+      handleVictory();
+    }
+  };
+
+  const handleUltimateAbility = (ultimate) => {
+    if (currentEnergy < 100 || ultimateCooldown > 0) return;
+
+    const weapon = WEAPONS[player.weapon];
+    const attackPosition = calculateAttackPosition();
+    const positionMultiplier = weapon.ultimateAbility.positionMultipliers?.[attackPosition] || 1;
+    
+    const damage = Math.floor(ultimate.damage * positionMultiplier);
+    updateMonsterHealth(monster.health - damage);
+    updatePlayerStamina(player.stamina - ultimate.energyCost);
+
+    addToCombatLog(`¡${ultimate.name} causa ${damage} de daño!`, 'damage');
+    
+    setCurrentAction('ultimate');
+    setEffects(prev => [...prev, {
+      type: 'ULTIMATE_ABILITY',
+      position: { x: window.innerWidth / 2, y: window.innerHeight / 2 },
+      scale: 2,
+      duration: 2000
+    }]);
+
+    // Aplicar efectos de estado
+    ultimate.statusEffects.forEach(effect => {
+      statusEffectApplier.current.applyEffectFromAbility('monster', effect);
+    });
+
+    // Resetear energía y cooldown
+    setCurrentEnergy(0);
+    setUltimateCooldown(ultimate.cooldown);
+
+    // Verificar victoria
+    if (monster.health <= damage) {
+      handleVictory();
+    }
+  };
+
+  const handleVictory = () => {
+    setIsVictory(true);
+    const combatTime = Date.now() - combatStartTime;
+    const rewards = calculateRewards(combatTime);
+    
+    setTimeout(() => {
+      endCombat(rewards);
+    }, 2000);
+  };
+
+  const calculateRewards = (combatTime) => {
+    const baseRewards = {
+      experience: REWARDS.EXPERIENCE[monster.type],
+      money: REWARDS.MONEY[monster.type],
+      materials: REWARDS.MATERIALS[monster.type]
+    };
+
+    let multiplier = 1;
+
+    // Bonus por velocidad
+    if (combatTime < REWARDS.BONUS_REWARDS.SPEED_KILL.timeThreshold) {
+      multiplier *= REWARDS.BONUS_REWARDS.SPEED_KILL.multiplier;
+    }
+
+    // Bonus por no recibir daño
+    if (player.health === player.maxHealth) {
+      multiplier *= REWARDS.BONUS_REWARDS.NO_DAMAGE.multiplier;
+    }
+
+    // Bonus por combos
+    if (comboCount >= REWARDS.BONUS_REWARDS.COMBO_MASTER.requiredCombos) {
+      multiplier *= REWARDS.BONUS_REWARDS.COMBO_MASTER.multiplier;
+    }
+
+    // Bonus por efectos de estado
+    if (statusEffectCount >= REWARDS.BONUS_REWARDS.STATUS_EFFECT.requiredEffects) {
+      multiplier *= REWARDS.BONUS_REWARDS.STATUS_EFFECT.multiplier;
+    }
+
+    return {
+      experience: Math.floor(baseRewards.experience * multiplier),
+      money: Math.floor(baseRewards.money * multiplier),
+      materials: baseRewards.materials
+    };
   };
 
   const updateStatusEffects = () => {
@@ -303,6 +467,8 @@ const CombatInterface = () => {
 
   if (!isInCombat || !monster) return null;
 
+  const weapon = WEAPONS[player.weapon];
+
   return (
     <CombatContainer>
       <HealthBars>
@@ -344,6 +510,22 @@ const CombatInterface = () => {
       <StaminaBar>
         <StaminaFill stamina={(player.stamina / player.maxStamina) * 100} />
       </StaminaBar>
+
+      <UltimateAbilityBar
+        ultimateAbility={weapon.ultimateAbility}
+        currentEnergy={currentEnergy}
+        onUltimateUse={handleUltimateAbility}
+        disabled={player.stamina < weapon.ultimateAbility.energyCost}
+        cooldown={ultimateCooldown}
+      />
+
+      <ComboSystem
+        weaponType={player.weapon}
+        onComboSelect={handleCombo}
+        onSpecialAbility={() => {}}
+        stamina={player.stamina}
+        disabled={isVictory || isDefeat}
+      />
 
       <Controls>
         <Button 

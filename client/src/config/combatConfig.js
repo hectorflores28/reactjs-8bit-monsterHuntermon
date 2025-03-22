@@ -6,7 +6,16 @@ export const DAMAGE_TYPES = {
   FIRE: 'fire',
   ICE: 'ice',
   LIGHTNING: 'lightning',
-  POISON: 'poison'
+  POISON: 'poison',
+  SONIC: 'sonic'
+};
+
+// Posiciones de ataque
+export const ATTACK_POSITIONS = {
+  FRONT: 'front',
+  BACK: 'back',
+  SIDE: 'side',
+  AERIAL: 'aerial'
 };
 
 // Estados alterados
@@ -19,7 +28,11 @@ export const STATUS_EFFECTS = {
     color: '#00ff00',
     sprite: '/assets/sprites/effects/poison.png',
     animation: 'poison_effect',
-    sound: 'poison_tick'
+    sound: 'poison_tick',
+    interactions: {
+      ICE: { effect: 'CLEAR', message: '¡El veneno se congela!' },
+      FIRE: { effect: 'POTENTIATE', multiplier: 1.5, message: '¡El veneno se intensifica!' }
+    }
   },
   STUN: {
     name: 'stun',
@@ -31,6 +44,9 @@ export const STATUS_EFFECTS = {
     effects: {
       movementSpeed: 0.5,
       attackSpeed: 0.5
+    },
+    interactions: {
+      LIGHTNING: { effect: 'EXTEND', duration: 2000, message: '¡El aturdimiento se prolonga!' }
     }
   },
   STRENGTH: {
@@ -40,7 +56,10 @@ export const STATUS_EFFECTS = {
     color: '#ff0000',
     sprite: '/assets/sprites/effects/strength.png',
     animation: 'strength_effect',
-    sound: 'strength_buff'
+    sound: 'strength_buff',
+    interactions: {
+      FIRE: { effect: 'POTENTIATE', multiplier: 1.2, message: '¡La fuerza aumenta!' }
+    }
   },
   FROST: {
     name: 'frost',
@@ -54,6 +73,10 @@ export const STATUS_EFFECTS = {
     effects: {
       movementSpeed: 0.7,
       attackSpeed: 0.7
+    },
+    interactions: {
+      FIRE: { effect: 'CLEAR', message: '¡El hielo se derrite!' },
+      ICE: { effect: 'POTENTIATE', multiplier: 1.3, message: '¡El hielo se intensifica!' }
     }
   },
   BURN: {
@@ -67,6 +90,10 @@ export const STATUS_EFFECTS = {
     sound: 'burn_tick',
     effects: {
       defense: 0.8
+    },
+    interactions: {
+      ICE: { effect: 'CLEAR', message: '¡El fuego se apaga!' },
+      FIRE: { effect: 'POTENTIATE', multiplier: 1.4, message: '¡El fuego arde más fuerte!' }
     }
   },
   BLIND: {
@@ -78,6 +105,9 @@ export const STATUS_EFFECTS = {
     sound: 'blind_effect',
     effects: {
       accuracy: 0.7
+    },
+    interactions: {
+      LIGHTNING: { effect: 'CLEAR', message: '¡El relámpago disipa la ceguera!' }
     }
   }
 };
@@ -102,7 +132,24 @@ export const WEAPONS = {
       cooldown: 10000,
       animation: 'true_charged_slash',
       effect: 'charged_slash',
-      statusEffects: ['STUN']
+      statusEffects: ['STUN'],
+      positionMultipliers: {
+        [ATTACK_POSITIONS.BACK]: 1.5,
+        [ATTACK_POSITIONS.SIDE]: 1.2
+      }
+    },
+    ultimateAbility: {
+      name: 'Dragon Slayer',
+      damage: 100,
+      energyCost: 100,
+      cooldown: 30000,
+      animation: 'dragon_slayer',
+      effect: 'ultimate_slash',
+      statusEffects: ['BURN', 'STUN'],
+      areaOfEffect: {
+        radius: 3,
+        damageMultiplier: 0.5
+      }
     },
     combos: [
       {
@@ -112,7 +159,8 @@ export const WEAPONS = {
         staminaCost: 60,
         animation: 'basic_combo',
         effect: 'combo_finish',
-        statusEffects: ['POISON']
+        statusEffects: ['POISON'],
+        energyGain: 20
       },
       {
         name: 'Advanced Combo',
@@ -121,7 +169,19 @@ export const WEAPONS = {
         staminaCost: 80,
         animation: 'advanced_combo',
         effect: 'combo_finish_advanced',
-        statusEffects: ['BURN']
+        statusEffects: ['BURN'],
+        energyGain: 30
+      },
+      {
+        name: 'Ultimate Combo',
+        sequence: ['heavy', 'heavy', 'light', 'heavy', 'heavy'],
+        damage: 90,
+        staminaCost: 100,
+        animation: 'ultimate_combo',
+        effect: 'ultimate_combo_finish',
+        statusEffects: ['STUN', 'BURN'],
+        energyGain: 50,
+        unlocksUltimate: true
       }
     ]
   },
@@ -143,7 +203,24 @@ export const WEAPONS = {
       cooldown: 8000,
       animation: 'counter_thrust',
       effect: 'counter_effect',
-      statusEffects: ['BLIND']
+      statusEffects: ['BLIND'],
+      positionMultipliers: {
+        [ATTACK_POSITIONS.FRONT]: 1.3,
+        [ATTACK_POSITIONS.SIDE]: 1.1
+      }
+    },
+    ultimateAbility: {
+      name: 'Dragon Piercer',
+      damage: 80,
+      energyCost: 100,
+      cooldown: 25000,
+      animation: 'dragon_piercer',
+      effect: 'ultimate_pierce',
+      statusEffects: ['FROST', 'STUN'],
+      areaOfEffect: {
+        radius: 2,
+        damageMultiplier: 0.7
+      }
     },
     combos: [
       {
@@ -153,7 +230,8 @@ export const WEAPONS = {
         staminaCost: 45,
         animation: 'poke_combo',
         effect: 'poke_finish',
-        statusEffects: ['FROST']
+        statusEffects: ['FROST'],
+        energyGain: 15
       },
       {
         name: 'Charge Combo',
@@ -162,7 +240,19 @@ export const WEAPONS = {
         staminaCost: 65,
         animation: 'charge_combo',
         effect: 'charge_finish',
-        statusEffects: ['STUN']
+        statusEffects: ['STUN'],
+        energyGain: 25
+      },
+      {
+        name: 'Ultimate Combo',
+        sequence: ['light', 'light', 'heavy', 'heavy', 'light'],
+        damage: 75,
+        staminaCost: 90,
+        animation: 'ultimate_combo',
+        effect: 'ultimate_combo_finish',
+        statusEffects: ['FROST', 'STUN'],
+        energyGain: 40,
+        unlocksUltimate: true
       }
     ]
   }
@@ -184,7 +274,23 @@ export const MONSTERS = {
       cooldown: 15000,
       animation: 'fire_breath',
       effect: 'fire_breath_effect',
-      statusEffects: ['BURN']
+      statusEffects: ['BURN'],
+      areaOfEffect: {
+        radius: 2,
+        damageMultiplier: 0.8
+      }
+    },
+    ultimateAbility: {
+      name: 'Infernal Rage',
+      damage: 70,
+      cooldown: 30000,
+      animation: 'infernal_rage',
+      effect: 'ultimate_fire',
+      statusEffects: ['BURN', 'STUN'],
+      areaOfEffect: {
+        radius: 4,
+        damageMultiplier: 0.6
+      }
     }
   },
   DIABLOS: {
@@ -201,7 +307,23 @@ export const MONSTERS = {
       cooldown: 12000,
       animation: 'burrow_charge',
       effect: 'burrow_charge_effect',
-      statusEffects: ['STUN']
+      statusEffects: ['STUN'],
+      areaOfEffect: {
+        radius: 1.5,
+        damageMultiplier: 0.9
+      }
+    },
+    ultimateAbility: {
+      name: 'Underground Rage',
+      damage: 80,
+      cooldown: 25000,
+      animation: 'underground_rage',
+      effect: 'ultimate_burrow',
+      statusEffects: ['STUN', 'BLIND'],
+      areaOfEffect: {
+        radius: 3,
+        damageMultiplier: 0.7
+      }
     }
   },
   NERGIGANTE: {
@@ -218,7 +340,23 @@ export const MONSTERS = {
       cooldown: 20000,
       animation: 'dive_bomb',
       effect: 'dive_bomb_effect',
-      statusEffects: ['BLIND']
+      statusEffects: ['BLIND'],
+      areaOfEffect: {
+        radius: 2.5,
+        damageMultiplier: 0.75
+      }
+    },
+    ultimateAbility: {
+      name: 'Elder Dragon Rage',
+      damage: 90,
+      cooldown: 35000,
+      animation: 'elder_dragon_rage',
+      effect: 'ultimate_dive',
+      statusEffects: ['BLIND', 'STUN'],
+      areaOfEffect: {
+        radius: 4,
+        damageMultiplier: 0.6
+      }
     }
   }
 };
@@ -256,6 +394,14 @@ export const COMBAT_EFFECTS = {
     sprite: '/assets/sprites/effects/special_ability.png',
     width: 128,
     height: 128
+  },
+  ULTIMATE_ABILITY: {
+    name: 'ultimate_ability',
+    frames: 16,
+    frameRate: 15,
+    sprite: '/assets/sprites/effects/ultimate_ability.png',
+    width: 192,
+    height: 192
   },
   CHARGED_SLASH: {
     name: 'charged_slash',
@@ -324,5 +470,22 @@ export const REWARDS = {
     RATHALOS: 5000,
     DIABLOS: 6000,
     NERGIGANTE: 7500
+  },
+  BONUS_REWARDS: {
+    SPEED_KILL: {
+      multiplier: 1.5,
+      timeThreshold: 300000 // 5 minutos
+    },
+    NO_DAMAGE: {
+      multiplier: 2.0
+    },
+    COMBO_MASTER: {
+      multiplier: 1.3,
+      requiredCombos: 5
+    },
+    STATUS_EFFECT: {
+      multiplier: 1.2,
+      requiredEffects: 3
+    }
   }
 }; 
