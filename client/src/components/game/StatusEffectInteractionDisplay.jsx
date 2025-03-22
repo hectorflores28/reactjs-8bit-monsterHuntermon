@@ -3,13 +3,16 @@ import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StatusEffectVisualManager } from '../../config/statusEffectInteractions';
 
-const InteractionContainer = styled.div`
+const InteractionContainer = styled(motion.div)`
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  z-index: 2000;
-  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 1000;
 `;
 
 const InteractionMessage = styled(motion.div)`
@@ -21,25 +24,23 @@ const InteractionMessage = styled(motion.div)`
   font-size: 12px;
   text-align: center;
   white-space: nowrap;
-  margin-bottom: 10px;
 `;
 
 const EffectIcon = styled(motion.div)`
-  width: 32px;
-  height: 32px;
+  width: 48px;
+  height: 48px;
   background-image: url(${props => props.sprite});
   background-size: cover;
   position: relative;
-  margin: 0 auto;
 `;
 
-const StackIndicator = styled.div`
+const StackIndicator = styled(motion.div)`
   position: absolute;
-  bottom: -5px;
+  top: -5px;
   right: -5px;
-  background-color: ${props => props.color};
+  background-color: #ff4444;
   color: white;
-  font-size: 10px;
+  font-size: 8px;
   padding: 2px 4px;
   border-radius: 3px;
   font-family: 'Press Start 2P', monospace;
@@ -69,7 +70,7 @@ const StatusEffectInteractionDisplay = ({ interactions, onInteractionComplete })
   return (
     <InteractionContainer>
       <AnimatePresence>
-        {interactions.map((interaction, index) => (
+        {interactions.map((interaction) => (
           <motion.div
             key={interaction.id}
             variants={containerVariants}
@@ -82,12 +83,16 @@ const StatusEffectInteractionDisplay = ({ interactions, onInteractionComplete })
               {interaction.message}
             </InteractionMessage>
             <EffectIcon
-              sprite={visualManager.getEffectAnimation(interaction.effect, interaction.type)}
               variants={iconVariants}
+              sprite={`/assets/sprites/effects/${interaction.visualEffect}.png`}
             >
               {interaction.stacks > 1 && (
-                <StackIndicator color={visualManager.getEffectColor(interaction.effect)}>
-                  {interaction.stacks}
+                <StackIndicator
+                  initial={{ opacity: 0, scale: 0.5 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.5 }}
+                >
+                  x{interaction.stacks}
                 </StackIndicator>
               )}
             </EffectIcon>

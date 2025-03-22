@@ -677,6 +677,13 @@ const CombatInterface = () => {
         disabled={isVictory || isDefeat}
       />
 
+      <CountermeasuresDisplay
+        activeEffects={playerEffects}
+        inventory={inventory}
+        onUseCountermeasure={handleUseCountermeasure}
+        disabled={isVictory || isDefeat}
+      />
+
       <Controls>
         <Button 
           onClick={() => handleAttack('light')}
