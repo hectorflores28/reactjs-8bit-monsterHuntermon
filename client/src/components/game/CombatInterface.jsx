@@ -9,6 +9,7 @@ import StatusEffectsDisplay from './StatusEffectsDisplay';
 import ComboSystem from './ComboSystem';
 import UltimateAbilityBar from './UltimateAbilityBar';
 import StatusEffectInteractionDisplay from './StatusEffectInteractionDisplay';
+import CountermeasuresDisplay from './CountermeasuresDisplay';
 import { MonsterAI } from '../../config/monsterAI';
 import { StatusEffectManager, StatusEffectApplier } from '../../config/statusEffects';
 import { StatusEffectInteractionManager, StatusEffectVisualManager } from '../../config/statusEffectInteractions';
@@ -147,6 +148,13 @@ const CombatInterface = () => {
   const [effectInteractions, setEffectInteractions] = useState([]);
   const [currentSequence, setCurrentSequence] = useState([]);
   const [sequenceTimeout, setSequenceTimeout] = useState(null);
+  const [inventory, setInventory] = useState({
+    ANTIDOTE: 3,
+    STIMULANT: 2,
+    WARMTH_POTION: 2,
+    COOLING_SALVE: 2,
+    EYE_DROPS: 1
+  });
 
   const monsterAI = useRef(null);
   const statusEffectManager = useRef(new StatusEffectManager());
@@ -377,6 +385,31 @@ const CombatInterface = () => {
     };
   };
 
+  const handleUseCountermeasure = (effect, itemType) => {
+    const countermeasure = statusEffectInteractionManager.current.applyCountermeasure('player', effect, itemType);
+    if (!countermeasure) return;
+
+    // Reducir el contador del item
+    setInventory(prev => ({
+      ...prev,
+      [itemType]: prev[itemType] - 1
+    }));
+
+    // Aplicar la contramedida
+    statusEffectManager.current.removeEffect(effect, 'player');
+
+    // Añadir efectos visuales y sonoros
+    setEffects(prev => [...prev, {
+      type: countermeasure.animation,
+      position: { x: window.innerWidth / 2, y: window.innerHeight / 2 },
+      scale: 1.2,
+      duration: 1000
+    }]);
+
+    // Añadir mensaje al log
+    addToCombatLog(countermeasure.message, 'heal');
+  };
+
   const handleEffectInteraction = (effect1, effect2, target) => {
     const interaction = statusEffectInteractionManager.current.applyInteraction(target, effect1, effect2);
     if (!interaction) return;
@@ -384,19 +417,47 @@ const CombatInterface = () => {
     const interactionId = Date.now();
     setEffectInteractions(prev => [...prev, { ...interaction, id: interactionId }]);
 
-    switch (interaction.type) {
+    // Ejecutar la acción de la interacción
+    const action = interaction.action();
+    switch (action.type) {
       case 'CLEAR':
         statusEffectManager.current.removeEffect(effect1, target);
         break;
       case 'POTENTIATE':
-        statusEffectManager.current.potentiateEffect(effect1, target, interaction.multiplier);
+        statusEffectManager.current.potentiateEffect(effect1, target, action.multiplier);
         break;
       case 'EXTEND':
-        statusEffectManager.current.extendEffect(effect1, target, interaction.duration);
+        statusEffectManager.current.extendEffect(effect1, target, action.duration);
+        break;
+      case 'SPREAD':
+        // Implementar lógica de propagación de efectos
+        handleEffectSpread(effect1, target, action.radius);
+        break;
+      case 'FREEZE':
+        statusEffectManager.current.applyEffect('FROST', target);
         break;
     }
 
     updateStatusEffects();
+  };
+
+  const handleEffectSpread = (effect, source, radius) => {
+    // Implementar lógica de propagación de efectos
+    const targets = getTargetsInRadius(source, radius);
+    targets.forEach(target => {
+      statusEffectManager.current.applyEffect(effect, target);
+    });
+  };
+
+  const getTargetsInRadius = (source, radius) => {
+    // Implementar lógica para obtener objetivos en el radio
+    const targets = [];
+    if (source === 'player') {
+      targets.push('monster');
+    } else if (source === 'monster') {
+      targets.push('player');
+    }
+    return targets;
   };
 
   const handleInteractionComplete = (interactionId) => {

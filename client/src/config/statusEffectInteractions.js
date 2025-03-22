@@ -9,14 +9,24 @@ export class StatusEffectInteractionManager {
           effect: 'CLEAR',
           message: '¡El veneno se congela!',
           animation: 'ice_clear',
-          sound: 'ice_clear'
+          sound: 'ice_clear',
+          visualEffect: 'ice_crystal'
         },
         FIRE: {
           effect: 'POTENTIATE',
           multiplier: 1.5,
           message: '¡El veneno se intensifica!',
           animation: 'fire_potentiate',
-          sound: 'fire_potentiate'
+          sound: 'fire_potentiate',
+          visualEffect: 'toxic_flame'
+        },
+        LIGHTNING: {
+          effect: 'SPREAD',
+          radius: 2,
+          message: '¡El veneno se propaga!',
+          animation: 'lightning_spread',
+          sound: 'lightning_spread',
+          visualEffect: 'toxic_lightning'
         }
       },
       STUN: {
@@ -25,7 +35,16 @@ export class StatusEffectInteractionManager {
           duration: 2000,
           message: '¡El aturdimiento se prolonga!',
           animation: 'lightning_extend',
-          sound: 'lightning_extend'
+          sound: 'lightning_extend',
+          visualEffect: 'stun_lightning'
+        },
+        ICE: {
+          effect: 'FREEZE',
+          duration: 3000,
+          message: '¡El aturdimiento se congela!',
+          animation: 'ice_freeze',
+          sound: 'ice_freeze',
+          visualEffect: 'frozen_stun'
         }
       },
       FROST: {
@@ -33,14 +52,24 @@ export class StatusEffectInteractionManager {
           effect: 'CLEAR',
           message: '¡El hielo se derrite!',
           animation: 'fire_clear',
-          sound: 'fire_clear'
+          sound: 'fire_clear',
+          visualEffect: 'steam'
         },
         ICE: {
           effect: 'POTENTIATE',
           multiplier: 1.3,
           message: '¡El hielo se intensifica!',
           animation: 'ice_potentiate',
-          sound: 'ice_potentiate'
+          sound: 'ice_potentiate',
+          visualEffect: 'ice_crystal'
+        },
+        WATER: {
+          effect: 'SPREAD',
+          radius: 1.5,
+          message: '¡El hielo se propaga!',
+          animation: 'water_spread',
+          sound: 'water_spread',
+          visualEffect: 'ice_wave'
         }
       },
       BURN: {
@@ -48,14 +77,24 @@ export class StatusEffectInteractionManager {
           effect: 'CLEAR',
           message: '¡El fuego se apaga!',
           animation: 'ice_clear',
-          sound: 'ice_clear'
+          sound: 'ice_clear',
+          visualEffect: 'steam'
         },
         FIRE: {
           effect: 'POTENTIATE',
           multiplier: 1.4,
           message: '¡El fuego arde más fuerte!',
           animation: 'fire_potentiate',
-          sound: 'fire_potentiate'
+          sound: 'fire_potentiate',
+          visualEffect: 'inferno'
+        },
+        WIND: {
+          effect: 'SPREAD',
+          radius: 2.5,
+          message: '¡El fuego se propaga!',
+          animation: 'wind_spread',
+          sound: 'wind_spread',
+          visualEffect: 'firestorm'
         }
       },
       BLIND: {
@@ -63,8 +102,55 @@ export class StatusEffectInteractionManager {
           effect: 'CLEAR',
           message: '¡El relámpago disipa la ceguera!',
           animation: 'lightning_clear',
-          sound: 'lightning_clear'
+          sound: 'lightning_clear',
+          visualEffect: 'light_flash'
+        },
+        LIGHT: {
+          effect: 'POTENTIATE',
+          multiplier: 1.2,
+          message: '¡La ceguera se intensifica!',
+          animation: 'light_potentiate',
+          sound: 'light_potentiate',
+          visualEffect: 'blinding_light'
         }
+      }
+    };
+
+    this.countermeasures = {
+      POISON: {
+        item: 'ANTIDOTE',
+        ability: 'CURE',
+        message: '¡El veneno ha sido curado!',
+        animation: 'cure_effect',
+        sound: 'cure_sound'
+      },
+      STUN: {
+        item: 'STIMULANT',
+        ability: 'RECOVER',
+        message: '¡El aturdimiento ha sido aliviado!',
+        animation: 'recover_effect',
+        sound: 'recover_sound'
+      },
+      FROST: {
+        item: 'WARMTH_POTION',
+        ability: 'THAW',
+        message: '¡El hielo ha sido derretido!',
+        animation: 'thaw_effect',
+        sound: 'thaw_sound'
+      },
+      BURN: {
+        item: 'COOLING_SALVE',
+        ability: 'EXTINGUISH',
+        message: '¡El fuego ha sido apagado!',
+        animation: 'extinguish_effect',
+        sound: 'extinguish_sound'
+      },
+      BLIND: {
+        item: 'EYE_DROPS',
+        ability: 'CLEAR_VISION',
+        message: '¡La vista ha sido restaurada!',
+        animation: 'clear_vision_effect',
+        sound: 'clear_vision_sound'
       }
     };
   }
@@ -77,39 +163,84 @@ export class StatusEffectInteractionManager {
     const interaction = this.checkInteraction(effect1, effect2);
     if (!interaction) return null;
 
+    const result = {
+      type: interaction.effect,
+      effect: effect1,
+      message: interaction.message,
+      animation: interaction.animation,
+      sound: interaction.sound,
+      visualEffect: interaction.visualEffect
+    };
+
     switch (interaction.effect) {
       case 'CLEAR':
-        return {
-          type: 'CLEAR',
-          effect: effect1,
-          message: interaction.message,
-          animation: interaction.animation,
-          sound: interaction.sound
+        result.action = () => {
+          return {
+            type: 'CLEAR',
+            effect: effect1
+          };
         };
+        break;
 
       case 'POTENTIATE':
-        return {
-          type: 'POTENTIATE',
-          effect: effect1,
-          multiplier: interaction.multiplier,
-          message: interaction.message,
-          animation: interaction.animation,
-          sound: interaction.sound
+        result.action = () => {
+          return {
+            type: 'POTENTIATE',
+            effect: effect1,
+            multiplier: interaction.multiplier
+          };
         };
+        break;
 
       case 'EXTEND':
-        return {
-          type: 'EXTEND',
-          effect: effect1,
-          duration: interaction.duration,
-          message: interaction.message,
-          animation: interaction.animation,
-          sound: interaction.sound
+        result.action = () => {
+          return {
+            type: 'EXTEND',
+            effect: effect1,
+            duration: interaction.duration
+          };
         };
+        break;
 
-      default:
-        return null;
+      case 'SPREAD':
+        result.action = () => {
+          return {
+            type: 'SPREAD',
+            effect: effect1,
+            radius: interaction.radius
+          };
+        };
+        break;
+
+      case 'FREEZE':
+        result.action = () => {
+          return {
+            type: 'FREEZE',
+            effect: effect1,
+            duration: interaction.duration
+          };
+        };
+        break;
     }
+
+    return result;
+  }
+
+  getCountermeasure(effect) {
+    return this.countermeasures[effect] || null;
+  }
+
+  applyCountermeasure(target, effect, type) {
+    const countermeasure = this.getCountermeasure(effect);
+    if (!countermeasure) return null;
+
+    return {
+      type: type,
+      effect: effect,
+      message: countermeasure.message,
+      animation: countermeasure.animation,
+      sound: countermeasure.sound
+    };
   }
 
   getEffectStackingRules(effect) {
