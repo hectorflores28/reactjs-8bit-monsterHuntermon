@@ -13,24 +13,72 @@ export const DAMAGE_TYPES = {
 export const STATUS_EFFECTS = {
   POISON: {
     name: 'poison',
-    duration: 5000, // 5 segundos
+    duration: 5000,
     damagePerTick: 5,
-    tickInterval: 1000, // 1 segundo
+    tickInterval: 1000,
     color: '#00ff00',
-    sprite: '/assets/sprites/effects/poison.png'
+    sprite: '/assets/sprites/effects/poison.png',
+    animation: 'poison_effect',
+    sound: 'poison_tick'
   },
   STUN: {
     name: 'stun',
-    duration: 3000, // 3 segundos
+    duration: 3000,
     color: '#ffff00',
-    sprite: '/assets/sprites/effects/stun.png'
+    sprite: '/assets/sprites/effects/stun.png',
+    animation: 'stun_effect',
+    sound: 'stun_effect',
+    effects: {
+      movementSpeed: 0.5,
+      attackSpeed: 0.5
+    }
   },
   STRENGTH: {
     name: 'strength',
-    duration: 8000, // 8 segundos
+    duration: 8000,
     damageMultiplier: 1.5,
     color: '#ff0000',
-    sprite: '/assets/sprites/effects/strength.png'
+    sprite: '/assets/sprites/effects/strength.png',
+    animation: 'strength_effect',
+    sound: 'strength_buff'
+  },
+  FROST: {
+    name: 'frost',
+    duration: 6000,
+    damagePerTick: 3,
+    tickInterval: 1000,
+    color: '#00ffff',
+    sprite: '/assets/sprites/effects/frost.png',
+    animation: 'frost_effect',
+    sound: 'frost_tick',
+    effects: {
+      movementSpeed: 0.7,
+      attackSpeed: 0.7
+    }
+  },
+  BURN: {
+    name: 'burn',
+    duration: 7000,
+    damagePerTick: 7,
+    tickInterval: 1000,
+    color: '#ff6600',
+    sprite: '/assets/sprites/effects/burn.png',
+    animation: 'burn_effect',
+    sound: 'burn_tick',
+    effects: {
+      defense: 0.8
+    }
+  },
+  BLIND: {
+    name: 'blind',
+    duration: 4000,
+    color: '#800080',
+    sprite: '/assets/sprites/effects/blind.png',
+    animation: 'blind_effect',
+    sound: 'blind_effect',
+    effects: {
+      accuracy: 0.7
+    }
   }
 };
 
@@ -51,9 +99,10 @@ export const WEAPONS = {
       name: 'True Charged Slash',
       damage: 50,
       staminaCost: 50,
-      cooldown: 10000, // 10 segundos
+      cooldown: 10000,
       animation: 'true_charged_slash',
-      effect: 'charged_slash'
+      effect: 'charged_slash',
+      statusEffects: ['STUN']
     },
     combos: [
       {
@@ -62,7 +111,8 @@ export const WEAPONS = {
         damage: 45,
         staminaCost: 60,
         animation: 'basic_combo',
-        effect: 'combo_finish'
+        effect: 'combo_finish',
+        statusEffects: ['POISON']
       },
       {
         name: 'Advanced Combo',
@@ -70,7 +120,8 @@ export const WEAPONS = {
         damage: 70,
         staminaCost: 80,
         animation: 'advanced_combo',
-        effect: 'combo_finish_advanced'
+        effect: 'combo_finish_advanced',
+        statusEffects: ['BURN']
       }
     ]
   },
@@ -89,9 +140,10 @@ export const WEAPONS = {
       name: 'Counter Thrust',
       damage: 35,
       staminaCost: 40,
-      cooldown: 8000, // 8 segundos
+      cooldown: 8000,
       animation: 'counter_thrust',
-      effect: 'counter_effect'
+      effect: 'counter_effect',
+      statusEffects: ['BLIND']
     },
     combos: [
       {
@@ -100,7 +152,8 @@ export const WEAPONS = {
         damage: 35,
         staminaCost: 45,
         animation: 'poke_combo',
-        effect: 'poke_finish'
+        effect: 'poke_finish',
+        statusEffects: ['FROST']
       },
       {
         name: 'Charge Combo',
@@ -108,7 +161,8 @@ export const WEAPONS = {
         damage: 55,
         staminaCost: 65,
         animation: 'charge_combo',
-        effect: 'charge_finish'
+        effect: 'charge_finish',
+        statusEffects: ['STUN']
       }
     ]
   }
@@ -129,7 +183,8 @@ export const MONSTERS = {
       damage: 40,
       cooldown: 15000,
       animation: 'fire_breath',
-      effect: 'fire_breath_effect'
+      effect: 'fire_breath_effect',
+      statusEffects: ['BURN']
     }
   },
   DIABLOS: {
@@ -145,7 +200,8 @@ export const MONSTERS = {
       damage: 45,
       cooldown: 12000,
       animation: 'burrow_charge',
-      effect: 'burrow_charge_effect'
+      effect: 'burrow_charge_effect',
+      statusEffects: ['STUN']
     }
   },
   NERGIGANTE: {
@@ -161,7 +217,8 @@ export const MONSTERS = {
       damage: 50,
       cooldown: 20000,
       animation: 'dive_bomb',
-      effect: 'dive_bomb_effect'
+      effect: 'dive_bomb_effect',
+      statusEffects: ['BLIND']
     }
   }
 };
@@ -199,6 +256,46 @@ export const COMBAT_EFFECTS = {
     sprite: '/assets/sprites/effects/special_ability.png',
     width: 128,
     height: 128
+  },
+  CHARGED_SLASH: {
+    name: 'charged_slash',
+    frames: 10,
+    frameRate: 12,
+    sprite: '/assets/sprites/effects/charged_slash.png',
+    width: 160,
+    height: 160
+  },
+  COUNTER_EFFECT: {
+    name: 'counter_effect',
+    frames: 6,
+    frameRate: 15,
+    sprite: '/assets/sprites/effects/counter_effect.png',
+    width: 80,
+    height: 80
+  },
+  FIRE_BREATH: {
+    name: 'fire_breath',
+    frames: 8,
+    frameRate: 12,
+    sprite: '/assets/sprites/effects/fire_breath.png',
+    width: 192,
+    height: 96
+  },
+  BURROW_CHARGE: {
+    name: 'burrow_charge',
+    frames: 8,
+    frameRate: 12,
+    sprite: '/assets/sprites/effects/burrow_charge.png',
+    width: 160,
+    height: 160
+  },
+  DIVE_BOMB: {
+    name: 'dive_bomb',
+    frames: 10,
+    frameRate: 15,
+    sprite: '/assets/sprites/effects/dive_bomb.png',
+    width: 224,
+    height: 224
   }
 };
 

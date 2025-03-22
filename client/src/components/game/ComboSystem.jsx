@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { WEAPONS } from '../../config/combatConfig';
 
 const ComboContainer = styled.div`
@@ -63,6 +63,24 @@ const ComboDot = styled.div`
   border-radius: 50%;
 `;
 
+const SpecialAbilityBar = styled.div`
+  position: absolute;
+  bottom: 140px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  height: 10px;
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: 5px;
+  overflow: hidden;
+`;
+
+const SpecialAbilityFill = styled(motion.div)`
+  height: 100%;
+  background-color: #ff4444;
+  width: ${props => props.progress}%;
+`;
+
 const ComboSystem = ({ 
   weaponType, 
   onComboSelect, 
@@ -72,6 +90,7 @@ const ComboSystem = ({
 }) => {
   const [currentCombo, setCurrentCombo] = useState([]);
   const [specialAbilityCooldown, setSpecialAbilityCooldown] = useState(0);
+  const [specialAbilityCharge, setSpecialAbilityCharge] = useState(0);
   const [comboTimeout, setComboTimeout] = useState(null);
 
   const weapon = WEAPONS[weaponType];
@@ -100,11 +119,15 @@ const ComboSystem = ({
     if (matchingCombo) {
       onComboSelect(matchingCombo);
       setCurrentCombo([]);
+      // Aumentar la carga de la habilidad especial
+      setSpecialAbilityCharge(prev => Math.min(100, prev + 20));
       return;
     }
 
     // Si no hay combo, ejecutar el ataque normal
     onComboSelect({ type, damage: weapon.baseDamage, staminaCost: weapon.staminaCost[type] });
+    // Aumentar la carga de la habilidad especial
+    setSpecialAbilityCharge(prev => Math.min(100, prev + 10));
 
     // Reiniciar el combo después de un tiempo
     if (comboTimeout) {
@@ -117,10 +140,11 @@ const ComboSystem = ({
   };
 
   const handleSpecialAbility = () => {
-    if (disabled || specialAbilityCooldown > 0) return;
+    if (disabled || specialAbilityCooldown > 0 || specialAbilityCharge < 100) return;
 
     onSpecialAbility(weapon.specialAbility);
     setSpecialAbilityCooldown(weapon.specialAbility.cooldown);
+    setSpecialAbilityCharge(0);
 
     // Iniciar el cooldown
     const interval = setInterval(() => {
@@ -140,6 +164,15 @@ const ComboSystem = ({
 
   return (
     <>
+      <SpecialAbilityBar>
+        <SpecialAbilityFill
+          progress={specialAbilityCharge}
+          initial={{ width: 0 }}
+          animate={{ width: `${specialAbilityCharge}%` }}
+          transition={{ duration: 0.3 }}
+        />
+      </SpecialAbilityBar>
+
       <ComboIndicator>
         {currentCombo.map((type, index) => (
           <ComboDot key={index} active={true} />
@@ -153,7 +186,7 @@ const ComboSystem = ({
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          Light
+          Ligero
         </ComboButton>
 
         <ComboButton
@@ -162,12 +195,12 @@ const ComboSystem = ({
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          Heavy
+          Pesado
         </ComboButton>
 
         <ComboButton
           onClick={handleSpecialAbility}
-          disabled={disabled || specialAbilityCooldown > 0 || stamina < weapon.specialAbility.staminaCost}
+          disabled={disabled || specialAbilityCooldown > 0 || specialAbilityCharge < 100}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >

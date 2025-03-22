@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../../store/gameStore';
 import MonsterAnimation from './MonsterAnimation';
 import CombatEffects from './CombatEffects';
 import CombatSound from './CombatSound';
+import StatusEffectsDisplay from './StatusEffectsDisplay';
+import { MonsterAI } from '../../config/monsterAI';
+import { StatusEffectManager, StatusEffectApplier } from '../../config/statusEffects';
 
 const CombatContainer = styled.div`
   position: fixed;
@@ -114,7 +117,9 @@ const CombatInterface = () => {
     endCombat,
     updatePlayerHealth,
     updateMonsterHealth,
-    updatePlayerStamina
+    updatePlayerStamina,
+    addStatusEffect,
+    removeStatusEffect
   } = useGameStore();
 
   const [combatLog, setCombatLog] = useState([]);
@@ -124,35 +129,105 @@ const CombatInterface = () => {
   const [currentAction, setCurrentAction] = useState(null);
   const [isVictory, setIsVictory] = useState(false);
   const [isDefeat, setIsDefeat] = useState(false);
+  const [playerEffects, setPlayerEffects] = useState([]);
+  const [monsterEffects, setMonsterEffects] = useState([]);
+
+  const monsterAI = useRef(null);
+  const statusEffectManager = useRef(new StatusEffectManager());
+  const statusEffectApplier = useRef(new StatusEffectApplier(statusEffectManager.current));
 
   useEffect(() => {
     if (isInCombat && monster) {
-      // Iniciar el ciclo de acciones del monstruo
-      const monsterActionInterval = setInterval(() => {
-        if (Math.random() < 0.3) { // 30% de probabilidad de atacar
-          setMonsterAction('ATTACK');
-          setIsMonsterAttacking(true);
-          setTimeout(() => {
-            setIsMonsterAttacking(false);
-            setMonsterAction('IDLE');
-          }, 1000);
-        }
-      }, 2000);
+      // Inicializar IA del monstruo
+      monsterAI.current = new MonsterAI(monster.type);
 
-      return () => clearInterval(monsterActionInterval);
+      // Iniciar el ciclo de actualización de la IA
+      const aiUpdateInterval = setInterval(() => {
+        if (!monsterAI.current) return;
+
+        const conditions = {
+          health: monster.health / monster.maxHealth,
+          playerDistance: calculateDistance(),
+          playerAttacking: currentAction !== null
+        };
+
+        // Actualizar estado del monstruo
+        const stateChanged = monsterAI.current.updateState(conditions);
+        if (stateChanged) {
+          setMonsterAction(monsterAI.current.currentState);
+        }
+
+        // Seleccionar y ejecutar acción
+        const pattern = monsterAI.current.selectAttackPattern(conditions);
+        if (monsterAI.current.checkCooldown(pattern)) {
+          executeMonsterAction(pattern);
+        }
+
+        // Actualizar efectos de estado
+        statusEffectManager.current.update();
+        updateStatusEffects();
+      }, 1000);
+
+      return () => clearInterval(aiUpdateInterval);
     }
-  }, [isInCombat, monster]);
+  }, [isInCombat, monster, currentAction]);
+
+  const calculateDistance = () => {
+    // Implementar cálculo de distancia entre jugador y monstruo
+    return 2; // Valor temporal
+  };
+
+  const executeMonsterAction = (pattern) => {
+    setIsMonsterAttacking(true);
+    setMonsterAction(pattern.name);
+
+    // Calcular daño con modificadores
+    const baseDamage = monster.baseDamage;
+    const modifiers = statusEffectManager.current.calculateStatModifiers('monster');
+    const damage = Math.floor(baseDamage * pattern.damage * modifiers.damageMultiplier);
+
+    // Aplicar daño al jugador
+    updatePlayerHealth(player.health - damage);
+    addToCombatLog(`Monstruo causa ${damage} de daño!`, 'damage');
+
+    // Añadir efectos visuales
+    setEffects(prev => [...prev, {
+      type: 'HIT',
+      position: { x: window.innerWidth / 2, y: window.innerHeight / 2 },
+      scale: pattern.name === 'special' ? 1.5 : 1,
+      duration: pattern.name === 'special' ? 1500 : 1000
+    }]);
+
+    // Resetear estado de ataque
+    setTimeout(() => {
+      setIsMonsterAttacking(false);
+      setMonsterAction('IDLE');
+    }, 1000);
+  };
+
+  const updateStatusEffects = () => {
+    setPlayerEffects(statusEffectManager.current.getActiveEffects('player'));
+    setMonsterEffects(statusEffectManager.current.getActiveEffects('monster'));
+  };
 
   const handleAttack = (type) => {
     if (player.stamina < 20) return;
 
-    const damage = type === 'light' ? 10 : type === 'heavy' ? 20 : 30;
-    const staminaCost = type === 'light' ? 20 : type === 'heavy' ? 30 : 40;
+    const weapon = WEAPONS[player.weapon];
+    const damage = type === 'light' ? weapon.baseDamage : 
+                  type === 'heavy' ? weapon.baseDamage * 1.5 : 
+                  weapon.baseDamage * 2;
+    
+    const staminaCost = weapon.staminaCost[type];
 
-    updateMonsterHealth(monster.health - damage);
+    // Calcular daño con modificadores
+    const modifiers = statusEffectManager.current.calculateStatModifiers('player');
+    const finalDamage = Math.floor(damage * modifiers.damageMultiplier);
+
+    updateMonsterHealth(monster.health - finalDamage);
     updatePlayerStamina(player.stamina - staminaCost);
 
-    addToCombatLog(`Player deals ${damage} damage!`, 'damage');
+    addToCombatLog(`Jugador causa ${finalDamage} de daño!`, 'damage');
     
     // Añadir efectos visuales y sonoros
     setCurrentAction(type);
@@ -163,7 +238,10 @@ const CombatInterface = () => {
       duration: type === 'combo' ? 1500 : 1000
     }]);
 
-    if (monster.health <= damage) {
+    // Aplicar efectos de estado basados en el tipo de daño
+    statusEffectApplier.current.applyEffectFromDamage('monster', weapon.type);
+
+    if (monster.health <= finalDamage) {
       setEffects(prev => [...prev, {
         type: 'COMBO',
         position: { x: window.innerWidth / 2, y: window.innerHeight / 2 },
@@ -181,9 +259,8 @@ const CombatInterface = () => {
     if (player.stamina < 15) return;
 
     updatePlayerStamina(player.stamina - 15);
-    addToCombatLog('Player blocks!', 'defense');
+    addToCombatLog('Jugador bloquea!', 'defense');
     
-    // Añadir efectos visuales y sonoros
     setCurrentAction('block');
     setEffects(prev => [...prev, {
       type: 'HIT',
@@ -197,18 +274,24 @@ const CombatInterface = () => {
     if (player.stamina < 25) return;
 
     updatePlayerStamina(player.stamina - 25);
-    addToCombatLog('Player dodges!', 'defense');
+    addToCombatLog('Jugador esquiva!', 'defense');
     setCurrentAction('dodge');
   };
 
   const handleFlee = () => {
     if (Math.random() < 0.5) {
       endCombat();
-      addToCombatLog('Player successfully flees!', 'defense');
+      addToCombatLog('Jugador huye exitosamente!', 'defense');
     } else {
-      addToCombatLog('Failed to flee!', 'damage');
+      addToCombatLog('Fallo al huir!', 'damage');
       setIsDefeat(true);
     }
+  };
+
+  const handleEffectClick = (effectId) => {
+    // Implementar lógica para remover efecto al hacer clic
+    statusEffectManager.current.removeEffect(effectId);
+    updateStatusEffects();
   };
 
   const addToCombatLog = (message, type) => {
@@ -246,6 +329,18 @@ const CombatInterface = () => {
         isDefeat={isDefeat}
       />
 
+      <StatusEffectsDisplay
+        effects={playerEffects}
+        onEffectClick={handleEffectClick}
+        target="player"
+      />
+
+      <StatusEffectsDisplay
+        effects={monsterEffects}
+        onEffectClick={handleEffectClick}
+        target="monster"
+      />
+
       <StaminaBar>
         <StaminaFill stamina={(player.stamina / player.maxStamina) * 100} />
       </StaminaBar>
@@ -255,13 +350,13 @@ const CombatInterface = () => {
           onClick={() => handleAttack('light')}
           disabled={player.stamina < 20}
         >
-          Light Attack
+          Ataque Ligero
         </Button>
         <Button 
           onClick={() => handleAttack('heavy')}
           disabled={player.stamina < 30}
         >
-          Heavy Attack
+          Ataque Pesado
         </Button>
         <Button 
           onClick={() => handleAttack('combo')}
@@ -273,16 +368,16 @@ const CombatInterface = () => {
           onClick={handleBlock}
           disabled={player.stamina < 15}
         >
-          Block
+          Bloquear
         </Button>
         <Button 
           onClick={handleDodge}
           disabled={player.stamina < 25}
         >
-          Dodge
+          Esquivar
         </Button>
         <Button onClick={handleFlee}>
-          Flee
+          Huir
         </Button>
       </Controls>
 
