@@ -8,9 +8,12 @@ import CombatSound from './CombatSound';
 import StatusEffectsDisplay from './StatusEffectsDisplay';
 import ComboSystem from './ComboSystem';
 import UltimateAbilityBar from './UltimateAbilityBar';
+import StatusEffectInteractionDisplay from './StatusEffectInteractionDisplay';
 import { MonsterAI } from '../../config/monsterAI';
 import { StatusEffectManager, StatusEffectApplier } from '../../config/statusEffects';
+import { StatusEffectInteractionManager, StatusEffectVisualManager } from '../../config/statusEffectInteractions';
 import { ATTACK_POSITIONS, WEAPONS, MONSTERS, COMBAT_EFFECTS } from '../../config/combatConfig';
+import ComboProgressDisplay from './ComboProgressDisplay';
 
 const CombatContainer = styled.div`
   position: fixed;
@@ -141,10 +144,15 @@ const CombatInterface = () => {
   const [comboCount, setComboCount] = useState(0);
   const [statusEffectCount, setStatusEffectCount] = useState(0);
   const [combatStartTime, setCombatStartTime] = useState(null);
+  const [effectInteractions, setEffectInteractions] = useState([]);
+  const [currentSequence, setCurrentSequence] = useState([]);
+  const [sequenceTimeout, setSequenceTimeout] = useState(null);
 
   const monsterAI = useRef(null);
   const statusEffectManager = useRef(new StatusEffectManager());
   const statusEffectApplier = useRef(new StatusEffectApplier(statusEffectManager.current));
+  const statusEffectInteractionManager = useRef(new StatusEffectInteractionManager());
+  const statusEffectVisualManager = useRef(new StatusEffectVisualManager());
   const combatTimer = useRef(null);
 
   useEffect(() => {
@@ -369,9 +377,51 @@ const CombatInterface = () => {
     };
   };
 
+  const handleEffectInteraction = (effect1, effect2, target) => {
+    const interaction = statusEffectInteractionManager.current.applyInteraction(target, effect1, effect2);
+    if (!interaction) return;
+
+    const interactionId = Date.now();
+    setEffectInteractions(prev => [...prev, { ...interaction, id: interactionId }]);
+
+    switch (interaction.type) {
+      case 'CLEAR':
+        statusEffectManager.current.removeEffect(effect1, target);
+        break;
+      case 'POTENTIATE':
+        statusEffectManager.current.potentiateEffect(effect1, target, interaction.multiplier);
+        break;
+      case 'EXTEND':
+        statusEffectManager.current.extendEffect(effect1, target, interaction.duration);
+        break;
+    }
+
+    updateStatusEffects();
+  };
+
+  const handleInteractionComplete = (interactionId) => {
+    setEffectInteractions(prev => prev.filter(interaction => interaction.id !== interactionId));
+  };
+
   const updateStatusEffects = () => {
-    setPlayerEffects(statusEffectManager.current.getActiveEffects('player'));
-    setMonsterEffects(statusEffectManager.current.getActiveEffects('monster'));
+    const playerEffects = statusEffectManager.current.getActiveEffects('player');
+    const monsterEffects = statusEffectManager.current.getActiveEffects('monster');
+
+    // Verificar interacciones entre efectos
+    playerEffects.forEach(effect1 => {
+      monsterEffects.forEach(effect2 => {
+        handleEffectInteraction(effect1.type, effect2.type, 'monster');
+      });
+    });
+
+    monsterEffects.forEach(effect1 => {
+      playerEffects.forEach(effect2 => {
+        handleEffectInteraction(effect1.type, effect2.type, 'player');
+      });
+    });
+
+    setPlayerEffects(playerEffects);
+    setMonsterEffects(monsterEffects);
   };
 
   const handleAttack = (type) => {
@@ -392,6 +442,32 @@ const CombatInterface = () => {
     updatePlayerStamina(player.stamina - staminaCost);
 
     addToCombatLog(`Jugador causa ${finalDamage} de daño!`, 'damage');
+    
+    // Actualizar secuencia de combo
+    setCurrentSequence(prev => [...prev, type]);
+    
+    // Limpiar timeout anterior
+    if (sequenceTimeout) {
+      clearTimeout(sequenceTimeout);
+    }
+
+    // Establecer nuevo timeout para resetear la secuencia
+    const timeout = setTimeout(() => {
+      setCurrentSequence([]);
+    }, 3000);
+
+    setSequenceTimeout(timeout);
+
+    // Verificar si la secuencia actual coincide con algún combo
+    const currentSequenceStr = [...currentSequence, type].join(',');
+    const matchingCombo = weapon.combos.find(combo => 
+      combo.sequence.join(',') === currentSequenceStr
+    );
+
+    if (matchingCombo) {
+      handleCombo(matchingCombo);
+      setCurrentSequence([]);
+    }
     
     // Añadir efectos visuales y sonoros
     setCurrentAction(type);
@@ -495,6 +571,11 @@ const CombatInterface = () => {
         isDefeat={isDefeat}
       />
 
+      <StatusEffectInteractionDisplay
+        interactions={effectInteractions}
+        onInteractionComplete={handleInteractionComplete}
+      />
+
       <StatusEffectsDisplay
         effects={playerEffects}
         onEffectClick={handleEffectClick}
@@ -523,6 +604,14 @@ const CombatInterface = () => {
         weaponType={player.weapon}
         onComboSelect={handleCombo}
         onSpecialAbility={() => {}}
+        stamina={player.stamina}
+        disabled={isVictory || isDefeat}
+      />
+
+      <ComboProgressDisplay
+        weaponType={player.weapon}
+        currentSequence={currentSequence}
+        onComboSelect={handleCombo}
         stamina={player.stamina}
         disabled={isVictory || isDefeat}
       />

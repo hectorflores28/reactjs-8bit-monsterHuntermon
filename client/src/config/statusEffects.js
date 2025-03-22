@@ -1,4 +1,4 @@
-import { DAMAGE_TYPES } from './combatConfig';
+import { STATUS_EFFECTS } from './combatConfig';
 
 // Estados alterados
 export const STATUS_EFFECTS = {
@@ -76,111 +76,131 @@ export const STATUS_EFFECTS = {
 // Sistema de gestión de estados alterados
 export class StatusEffectManager {
   constructor() {
-    this.activeEffects = new Map();
+    this.activeEffects = {
+      player: new Map(),
+      monster: new Map()
+    };
   }
 
-  // Aplicar un estado alterado
-  applyEffect(target, effectType) {
-    const effect = STATUS_EFFECTS[effectType];
-    if (!effect) return;
+  applyEffect(effect, target, source = null) {
+    const effectConfig = STATUS_EFFECTS[effect];
+    if (!effectConfig) return false;
 
-    const effectId = `${target}-${effectType}-${Date.now()}`;
-    const effectInstance = {
-      ...effect,
-      id: effectId,
-      startTime: Date.now(),
-      endTime: Date.now() + effect.duration
-    };
+    const targetEffects = this.activeEffects[target];
+    const existingEffect = targetEffects.get(effect);
 
-    this.activeEffects.set(effectId, effectInstance);
+    if (existingEffect) {
+      // Verificar reglas de apilamiento
+      const maxStacks = effectConfig.maxStacks || 1;
+      if (existingEffect.stacks >= maxStacks) {
+        // Si ya tiene el máximo de stacks, actualizar la duración
+        existingEffect.duration = effectConfig.duration;
+        return true;
+      }
 
-    // Iniciar el efecto de daño periódico si existe
-    if (effect.damagePerTick && effect.tickInterval) {
-      this.startDamageOverTime(effectId, effect);
+      // Aumentar stacks
+      existingEffect.stacks++;
+      existingEffect.duration = effectConfig.duration;
+    } else {
+      // Crear nuevo efecto
+      targetEffects.set(effect, {
+        type: effect,
+        duration: effectConfig.duration,
+        stacks: 1,
+        source: source,
+        appliedAt: Date.now()
+      });
     }
 
-    return effectId;
+    return true;
   }
 
-  // Remover un estado alterado
-  removeEffect(effectId) {
-    this.activeEffects.delete(effectId);
+  removeEffect(effect, target) {
+    const targetEffects = this.activeEffects[target];
+    return targetEffects.delete(effect);
   }
 
-  // Obtener todos los efectos activos de un objetivo
+  potentiateEffect(effect, target, multiplier) {
+    const targetEffects = this.activeEffects[target];
+    const existingEffect = targetEffects.get(effect);
+    
+    if (existingEffect) {
+      existingEffect.multiplier = (existingEffect.multiplier || 1) * multiplier;
+    }
+  }
+
+  extendEffect(effect, target, duration) {
+    const targetEffects = this.activeEffects[target];
+    const existingEffect = targetEffects.get(effect);
+    
+    if (existingEffect) {
+      existingEffect.duration += duration;
+    }
+  }
+
   getActiveEffects(target) {
-    return Array.from(this.activeEffects.values())
-      .filter(effect => effect.id.startsWith(target))
-      .map(effect => ({
-        ...effect,
-        remainingTime: effect.endTime - Date.now()
-      }));
+    const targetEffects = this.activeEffects[target];
+    const currentTime = Date.now();
+    const activeEffects = [];
+
+    for (const [effect, data] of targetEffects.entries()) {
+      if (currentTime - data.appliedAt < data.duration) {
+        activeEffects.push({
+          type: effect,
+          duration: data.duration - (currentTime - data.appliedAt),
+          stacks: data.stacks,
+          multiplier: data.multiplier || 1
+        });
+      } else {
+        targetEffects.delete(effect);
+      }
+    }
+
+    return activeEffects;
   }
 
-  // Actualizar efectos de daño periódico
-  startDamageOverTime(effectId, effect) {
-    const interval = setInterval(() => {
-      const effectInstance = this.activeEffects.get(effectId);
-      if (!effectInstance || Date.now() >= effectInstance.endTime) {
-        clearInterval(interval);
-        this.removeEffect(effectId);
-        return;
-      }
-
-      // Aplicar daño
-      if (effect.damagePerTick) {
-        // Aquí se llamaría a la función de daño del juego
-        this.onDamageTick?.(effectId, effect.damagePerTick);
-      }
-    }, effect.tickInterval);
-  }
-
-  // Calcular modificadores de estadísticas
   calculateStatModifiers(target) {
-    const effects = this.getActiveEffects(target);
+    const activeEffects = this.getActiveEffects(target);
     const modifiers = {
-      movementSpeed: 1,
-      attackSpeed: 1,
-      defense: 1,
-      accuracy: 1,
-      damageMultiplier: 1
+      damageMultiplier: 1,
+      defenseMultiplier: 1,
+      movementSpeedMultiplier: 1,
+      attackSpeedMultiplier: 1,
+      accuracyMultiplier: 1
     };
 
-    effects.forEach(effect => {
-      if (effect.effects) {
-        Object.entries(effect.effects).forEach(([stat, value]) => {
-          modifiers[stat] *= value;
+    activeEffects.forEach(effect => {
+      const effectConfig = STATUS_EFFECTS[effect.type];
+      if (!effectConfig) return;
+
+      // Aplicar efectos base
+      if (effectConfig.effects) {
+        Object.entries(effectConfig.effects).forEach(([stat, value]) => {
+          modifiers[`${stat}Multiplier`] *= value * effect.multiplier;
         });
       }
-      if (effect.damageMultiplier) {
-        modifiers.damageMultiplier *= effect.damageMultiplier;
+
+      // Aplicar multiplicadores de daño
+      if (effectConfig.damageMultiplier) {
+        modifiers.damageMultiplier *= effectConfig.damageMultiplier * effect.multiplier;
       }
     });
 
     return modifiers;
   }
 
-  // Verificar si un objetivo está afectado por un estado específico
-  hasEffect(target, effectType) {
-    return this.getActiveEffects(target)
-      .some(effect => effect.name === effectType);
-  }
-
-  // Obtener la duración restante de un efecto
-  getEffectRemainingTime(effectId) {
-    const effect = this.activeEffects.get(effectId);
-    if (!effect) return 0;
-    return Math.max(0, effect.endTime - Date.now());
-  }
-
-  // Actualizar el estado de los efectos
   update() {
-    const now = Date.now();
-    this.activeEffects.forEach((effect, effectId) => {
-      if (now >= effect.endTime) {
-        this.removeEffect(effectId);
+    const currentTime = Date.now();
+    
+    for (const target of ['player', 'monster']) {
+      const targetEffects = this.activeEffects[target];
+      
+      for (const [effect, data] of targetEffects.entries()) {
+        if (currentTime - data.appliedAt >= data.duration) {
+          targetEffects.delete(effect);
+        }
       }
-    });
+    }
   }
 }
 
@@ -190,44 +210,32 @@ export class StatusEffectApplier {
     this.statusEffectManager = statusEffectManager;
   }
 
-  // Aplicar efecto basado en el tipo de daño
   applyEffectFromDamage(target, damageType) {
-    switch (damageType) {
-      case DAMAGE_TYPES.FIRE:
-        return this.statusEffectManager.applyEffect(target, 'BURN');
-      case DAMAGE_TYPES.ICE:
-        return this.statusEffectManager.applyEffect(target, 'FROST');
-      case DAMAGE_TYPES.POISON:
-        return this.statusEffectManager.applyEffect(target, 'POISON');
-      default:
-        return null;
+    const effectMap = {
+      FIRE: 'BURN',
+      ICE: 'FROST',
+      LIGHTNING: 'STUN',
+      POISON: 'POISON'
+    };
+
+    const effect = effectMap[damageType];
+    if (effect) {
+      this.statusEffectManager.applyEffect(effect, target);
     }
   }
 
-  // Aplicar efecto basado en una habilidad especial
-  applyEffectFromAbility(target, abilityType) {
-    switch (abilityType) {
-      case 'STUN_ATTACK':
-        return this.statusEffectManager.applyEffect(target, 'STUN');
-      case 'BLIND_ATTACK':
-        return this.statusEffectManager.applyEffect(target, 'BLIND');
-      case 'STRENGTH_BUFF':
-        return this.statusEffectManager.applyEffect(target, 'STRENGTH');
-      default:
-        return null;
-    }
+  applyEffectFromAbility(target, effect) {
+    this.statusEffectManager.applyEffect(effect, target);
   }
 
-  // Remover efecto específico
-  removeEffect(effectId) {
-    this.statusEffectManager.removeEffect(effectId);
+  removeEffect(target, effect) {
+    this.statusEffectManager.removeEffect(effect, target);
   }
 
-  // Remover todos los efectos de un objetivo
   removeAllEffects(target) {
-    const effects = this.statusEffectManager.getActiveEffects(target);
-    effects.forEach(effect => {
-      this.statusEffectManager.removeEffect(effect.id);
+    const activeEffects = this.statusEffectManager.getActiveEffects(target);
+    activeEffects.forEach(effect => {
+      this.statusEffectManager.removeEffect(effect.type, target);
     });
   }
 } 
