@@ -5,52 +5,62 @@ const API_URL = '/api';
 
 const useAuthStore = create((set) => ({
   user: null,
-  token: localStorage.getItem('token'),
-  loading: false,
+  isAuthenticated: false,
+  isLoading: false,
   error: null,
 
-  setUser: (user) => set({ user }),
-  setToken: (token) => {
-    localStorage.setItem('token', token);
-    set({ token });
-  },
-  setLoading: (loading) => set({ loading }),
-  setError: (error) => set({ error }),
-
-  login: async (email, password) => {
+  login: async (credentials) => {
+    set({ isLoading: true, error: null });
     try {
-      set({ loading: true, error: null });
-      const response = await axios.post(`${API_URL}/auth/login`, { email, password });
-      const { token, ...user } = response.data;
-      set({ user, token, loading: false });
-      return user;
+      // TODO: Implementar llamada a la API
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(credentials),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error de autenticación');
+      }
+
+      const data = await response.json();
+      set({ user: data.user, isAuthenticated: true, isLoading: false });
     } catch (error) {
-      set({ error: error.response?.data?.message || 'Error al iniciar sesión', loading: false });
-      throw error;
+      set({ error: error.message, isLoading: false });
     }
   },
 
-  register: async (username, email, password, characterName) => {
+  register: async (userData) => {
+    set({ isLoading: true, error: null });
     try {
-      set({ loading: true, error: null });
-      const response = await axios.post(`${API_URL}/auth/register`, {
-        username,
-        email,
-        password,
-        characterName
+      // TODO: Implementar llamada a la API
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(userData),
       });
-      const { token, ...user } = response.data;
-      set({ user, token, loading: false });
-      return user;
+
+      if (!response.ok) {
+        throw new Error('Error en el registro');
+      }
+
+      const data = await response.json();
+      set({ user: data.user, isAuthenticated: true, isLoading: false });
     } catch (error) {
-      set({ error: error.response?.data?.message || 'Error al registrarse', loading: false });
-      throw error;
+      set({ error: error.message, isLoading: false });
     }
   },
 
   logout: () => {
-    localStorage.removeItem('token');
-    set({ user: null, token: null, error: null });
+    set({ user: null, isAuthenticated: false, error: null });
+  },
+
+  clearError: () => {
+    set({ error: null });
   },
 
   getProfile: async () => {

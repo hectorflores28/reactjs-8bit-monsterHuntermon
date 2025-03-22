@@ -1,7 +1,5 @@
-import { STATUS_EFFECTS } from './combatConfig';
-
 // Estados alterados
-export const STATUS_EFFECTS = {
+export const STATUS_EFFECTS_CONFIG = {
   POISON: {
     name: 'poison',
     duration: 5000,
@@ -83,7 +81,7 @@ export class StatusEffectManager {
   }
 
   applyEffect(effect, target, source = null) {
-    const effectConfig = STATUS_EFFECTS[effect];
+    const effectConfig = STATUS_EFFECTS_CONFIG[effect];
     if (!effectConfig) return false;
 
     const targetEffects = this.activeEffects[target];
@@ -170,7 +168,7 @@ export class StatusEffectManager {
     };
 
     activeEffects.forEach(effect => {
-      const effectConfig = STATUS_EFFECTS[effect.type];
+      const effectConfig = STATUS_EFFECTS_CONFIG[effect.type];
       if (!effectConfig) return;
 
       // Aplicar efectos base
