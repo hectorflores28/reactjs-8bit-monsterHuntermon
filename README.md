@@ -118,6 +118,6 @@ Este proyecto está bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) par
 
 ## 📞 Contacto
 
-Tu Nombre - [@tutwitter](https://twitter.com/tutwitter) - email@ejemplo.com
+Tu Nombre - [@hectorflores28](https://twitter.com/hectorflores28) - hectoralejandro_1@live.com.mx
 
-Link del Proyecto: [https://github.com/tu-usuario/reactjs-monster-hanter](https://github.com/tu-usuario/reactjs-monster-hanter)
+Link del Proyecto: [https://github.com/hectorflores28/reactjs-monster-hanter](https://github.com/hectorflores28/reactjs-monster-hanter)
