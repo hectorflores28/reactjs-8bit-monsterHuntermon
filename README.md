@@ -7,6 +7,8 @@
 
 Un juego estilo Monster Hunter desarrollado con React y Node.js, inspirado en el arte de Pokémon Platino y The Legend of Zelda GBA. ¡Embárcate en una aventura épica llena de dragones, monstruos y emocionantes batallas!
 
+![Foto](public/screenshot.png)
+
 ## 🎯 Características Principales
 
 - 🎮 Interfaz en estilo 8-bit con pixel art retro
