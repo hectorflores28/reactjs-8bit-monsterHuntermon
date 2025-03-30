@@ -1,8 +1,8 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
+const pool = require('./config/db');
 
 // Cargar variables de entorno
 dotenv.config();
@@ -18,16 +18,18 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Conectar a MongoDB
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/monsterhuntermon', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
-.then(() => console.log('Conectado a MongoDB'))
-.catch(err => console.error('Error conectando a MongoDB:', err));
+// Probar conexión a MySQL
+pool.getConnection()
+    .then(connection => {
+        console.log('Conectado a MySQL');
+        connection.release();
+    })
+    .catch(err => console.error('Error conectando a MySQL:', err));
 
 // Rutas API
-app.use('/api/characters', require('./routes/characters'));
+app.use('/api/jugadores', require('./routes/jugadores'));
+app.use('/api/monstruos', require('./routes/monstruos'));
+app.use('/api/armas', require('./routes/armas'));
 
 // Ruta de prueba
 app.get('/api/test', (req, res) => {

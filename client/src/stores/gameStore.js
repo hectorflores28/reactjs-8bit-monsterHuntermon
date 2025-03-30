@@ -4,30 +4,88 @@ import axios from 'axios';
 const API_URL = '/api';
 
 const useGameStore = create((set, get) => ({
-  player: {
-    position: { x: 0, y: 0 },
-    health: 100,
-    stamina: 100,
-    level: 1,
-    experience: 0,
-    weapon: null,
-    armor: null,
-    inventory: []
-  },
-  currentMonster: null,
-  isInCombat: false,
-  loading: false,
+  jugador: null,
+  monstruoActual: null,
+  inventario: [],
+  estadisticas: null,
+  enCombate: false,
+  cargando: false,
   error: null,
+
+  crearJugador: async (nombre) => {
+    set({ cargando: true, error: null });
+    try {
+      const response = await axios.post('http://localhost:5000/api/jugadores', { nombre });
+      set({ jugador: response.data });
+      return response.data;
+    } catch (error) {
+      set({ error: error.response?.data?.message || 'Error al crear jugador' });
+      throw error;
+    } finally {
+      set({ cargando: false });
+    }
+  },
+
+  cargarJugador: async (id) => {
+    set({ cargando: true, error: null });
+    try {
+      const [jugadorResponse, estadisticasResponse, inventarioResponse] = await Promise.all([
+        axios.get(`http://localhost:5000/api/jugadores/${id}`),
+        axios.get(`http://localhost:5000/api/jugadores/${id}/estadisticas`),
+        axios.get(`http://localhost:5000/api/jugadores/${id}/inventario`)
+      ]);
+
+      set({
+        jugador: jugadorResponse.data,
+        estadisticas: estadisticasResponse.data,
+        inventario: inventarioResponse.data
+      });
+    } catch (error) {
+      set({ error: error.response?.data?.message || 'Error al cargar jugador' });
+      throw error;
+    } finally {
+      set({ cargando: false });
+    }
+  },
+
+  iniciarCombate: (monstruo) => {
+    set({ monstruoActual: monstruo, enCombate: true });
+  },
+
+  finalizarCombate: async (resultado, duracion, recompensa) => {
+    try {
+      const { jugador, monstruoActual } = get();
+      await axios.post('http://localhost:5000/api/jugadores/caza', {
+        jugadorId: jugador.id,
+        monstruoId: monstruoActual.id,
+        duracion,
+        resultado,
+        recompensa
+      });
+
+      // Recargar estadísticas del jugador
+      await get().cargarJugador(jugador.id);
+      
+      set({ monstruoActual: null, enCombate: false });
+    } catch (error) {
+      set({ error: error.response?.data?.message || 'Error al finalizar combate' });
+      throw error;
+    }
+  },
+
+  clearError: () => {
+    set({ error: null });
+  },
 
   // Acciones del jugador
   movePlayer: (movement) => {
-    const { player } = get();
+    const { jugador } = get();
     set({
-      player: {
-        ...player,
+      jugador: {
+        ...jugador,
         position: {
-          x: player.position.x + movement.x,
-          y: player.position.y + movement.y
+          x: jugador.position.x + movement.x,
+          y: jugador.position.y + movement.y
         }
       }
     });
@@ -39,8 +97,8 @@ const useGameStore = create((set, get) => ({
       set({ loading: true, error: null });
       const response = await axios.post(`${API_URL}/game/hunt/start`, { monsterId });
       set({
-        currentMonster: response.data.monster,
-        isInCombat: true,
+        monstruoActual: response.data.monster,
+        enCombate: true,
         loading: false
       });
     } catch (error) {
@@ -71,67 +129,67 @@ const useGameStore = create((set, get) => ({
 
   endCombat: () => {
     set({
-      currentMonster: null,
-      isInCombat: false
+      monstruoActual: null,
+      enCombate: false
     });
   },
 
   // Gestión de inventario
   addItem: (item) => {
-    const { player } = get();
+    const { jugador } = get();
     set({
-      player: {
-        ...player,
-        inventory: [...player.inventory, item]
+      jugador: {
+        ...jugador,
+        inventory: [...jugador.inventory, item]
       }
     });
   },
 
   removeItem: (itemId) => {
-    const { player } = get();
+    const { jugador } = get();
     set({
-      player: {
-        ...player,
-        inventory: player.inventory.filter(item => item.id !== itemId)
+      jugador: {
+        ...jugador,
+        inventory: jugador.inventory.filter(item => item.id !== itemId)
       }
     });
   },
 
   equipItem: (itemId) => {
-    const { player } = get();
-    const item = player.inventory.find(item => item.id === itemId);
+    const { jugador } = get();
+    const item = jugador.inventory.find(item => item.id === itemId);
     if (!item) return;
 
     set({
-      player: {
-        ...player,
+      jugador: {
+        ...jugador,
         [item.type]: item,
-        inventory: player.inventory.filter(item => item.id !== itemId)
+        inventory: jugador.inventory.filter(item => item.id !== itemId)
       }
     });
   },
 
   // Progresión del personaje
   gainExperience: (amount) => {
-    const { player } = get();
-    const newExperience = player.experience + amount;
-    const experienceNeeded = player.level * 1000;
+    const { jugador } = get();
+    const newExperience = jugador.experience + amount;
+    const experienceNeeded = jugador.level * 1000;
 
     if (newExperience >= experienceNeeded) {
       // Subir de nivel
       set({
-        player: {
-          ...player,
-          level: player.level + 1,
+        jugador: {
+          ...jugador,
+          level: jugador.level + 1,
           experience: newExperience - experienceNeeded,
-          health: player.health + 10,
-          stamina: player.stamina + 5
+          health: jugador.health + 10,
+          stamina: jugador.stamina + 5
         }
       });
     } else {
       set({
-        player: {
-          ...player,
+        jugador: {
+          ...jugador,
           experience: newExperience
         }
       });
@@ -141,8 +199,8 @@ const useGameStore = create((set, get) => ({
   // Guardado automático
   saveGame: async () => {
     try {
-      const { player } = get();
-      await axios.post(`${API_URL}/game/save`, { player });
+      const { jugador } = get();
+      await axios.post(`${API_URL}/game/save`, { jugador });
     } catch (error) {
       console.error('Error al guardar el juego:', error);
     }
@@ -154,7 +212,7 @@ const useGameStore = create((set, get) => ({
       set({ loading: true, error: null });
       const response = await axios.get(`${API_URL}/game/load`);
       set({
-        player: response.data.player,
+        jugador: response.data.jugador,
         loading: false
       });
     } catch (error) {

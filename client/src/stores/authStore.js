@@ -4,59 +4,55 @@ import axios from 'axios';
 const API_URL = '/api';
 
 const useAuthStore = create((set) => ({
-  user: null,
   isAuthenticated: false,
-  isLoading: false,
+  user: null,
+  loading: false,
   error: null,
 
   login: async (credentials) => {
-    set({ isLoading: true, error: null });
+    set({ loading: true, error: null });
     try {
-      // TODO: Implementar llamada a la API
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials),
+      const response = await axios.post('http://localhost:5000/api/auth/login', credentials);
+      set({
+        isAuthenticated: true,
+        user: response.data.user,
+        loading: false
       });
-      
-      if (!response.ok) {
-        throw new Error('Error de autenticación');
-      }
-
-      const data = await response.json();
-      set({ user: data.user, isAuthenticated: true, isLoading: false });
+      return response.data;
     } catch (error) {
-      set({ error: error.message, isLoading: false });
+      set({
+        error: error.response?.data?.message || 'Error al iniciar sesión',
+        loading: false
+      });
+      throw error;
     }
   },
 
   register: async (userData) => {
-    set({ isLoading: true, error: null });
+    set({ loading: true, error: null });
     try {
-      // TODO: Implementar llamada a la API
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(userData),
+      const response = await axios.post('http://localhost:5000/api/auth/register', userData);
+      set({
+        isAuthenticated: true,
+        user: response.data.user,
+        loading: false
       });
-
-      if (!response.ok) {
-        throw new Error('Error en el registro');
-      }
-
-      const data = await response.json();
-      set({ user: data.user, isAuthenticated: true, isLoading: false });
+      return response.data;
     } catch (error) {
-      set({ error: error.message, isLoading: false });
+      set({
+        error: error.response?.data?.message || 'Error al registrar usuario',
+        loading: false
+      });
+      throw error;
     }
   },
 
   logout: () => {
-    set({ user: null, isAuthenticated: false, error: null });
+    set({
+      isAuthenticated: false,
+      user: null,
+      error: null
+    });
   },
 
   clearError: () => {
