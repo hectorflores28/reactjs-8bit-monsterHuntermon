@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
-import { useGameStore } from '../../store/gameStore';
+import { useGameStore } from '../../stores/gameStore';
 import {
   TILE_TYPES,
   TILE_SIZE,

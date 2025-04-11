@@ -5,6 +5,7 @@ import { GameProvider } from './context/GameContext';
 
 // Componentes
 import Home from './pages/Home';
+import Game from './pages/Game';
 
 const AppContainer = styled.div`
   width: 100%;
@@ -29,6 +30,7 @@ function App() {
           <MainContent>
             <Routes>
               <Route path="/" element={<Home />} />
+              <Route path="/game" element={<Game />} />
             </Routes>
           </MainContent>
         </AppContainer>

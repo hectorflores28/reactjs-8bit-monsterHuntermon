@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useGameStore } from '../../store/gameStore';
+import { useGameStore } from '../../stores/gameStore';
 import MonsterAnimation from './MonsterAnimation';
 import CombatEffects from './CombatEffects';
 import CombatSound from './CombatSound';
