@@ -1,22 +1,16 @@
-import { createContext, useContext } from 'react';
-import useGameStore from '../stores/gameStore';
+import React, { createContext, useContext } from 'react';
+import { useGameStore } from '../stores/gameStore';
 
 const GameContext = createContext();
 
+export const useGame = () => useContext(GameContext);
+
 export const GameProvider = ({ children }) => {
-    const gameState = useGameStore();
+    const gameStore = useGameStore();
 
     return (
-        <GameContext.Provider value={gameState}>
+        <GameContext.Provider value={gameStore}>
             {children}
         </GameContext.Provider>
     );
-};
-
-export const useGame = () => {
-    const context = useContext(GameContext);
-    if (!context) {
-        throw new Error('useGame debe ser usado dentro de un GameProvider');
-    }
-    return context;
 }; 

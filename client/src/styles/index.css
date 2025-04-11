@@ -4,15 +4,29 @@
   box-sizing: border-box;
 }
 
+html, body {
+  height: 100%;
+  width: 100%;
+}
+
 body {
-  font-family: 'Press Start 2P', cursive;
+  font-family: 'Press Start 2P', system-ui, -apple-system, sans-serif;
   background-color: #000;
   color: #fff;
   line-height: 1.6;
 }
 
 #root {
-  width: 100vw;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Asegúrate de que el contenido sea visible */
+.app-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background-color: #000;
 } 

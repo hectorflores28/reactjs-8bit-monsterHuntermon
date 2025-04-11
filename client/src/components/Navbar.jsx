@@ -61,7 +61,7 @@ const Navbar = () => {
                 whileTap={{ scale: 0.95 }}
                 onClick={() => navigate('/')}
             >
-                Monster Hunter
+                Monster Hanter
             </Logo>
             
             <NavLinks>
