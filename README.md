@@ -1,4 +1,4 @@
-# 🎮 React Monster Hunter
+# 🎮 React Monster Hanter
 
 ![React](https://img.shields.io/badge/React-18.2.0-blue.svg)
 ![Node.js](https://img.shields.io/badge/Node.js-14+-green.svg)
