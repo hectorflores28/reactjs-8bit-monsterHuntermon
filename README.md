@@ -32,7 +32,7 @@ Un juego estilo Monster Hunter desarrollado con React y Node.js, inspirado en el
 
 1. Clona el repositorio:
 ```bash
-git clone https://github.com/tu-usuario/reactjs-monster-hanter.git
+git clone https://github.com/hectorflores28/reactjs-monster-hanter.git
 cd reactjs-monster-hanter
 ```
 
