@@ -1,51 +1,139 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../styles/Instructions.css';
+import styled from 'styled-components';
+import { motion } from 'framer-motion';
+
+const InstructionsContainer = styled.div`
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Press Start 2P', cursive;
+  color: white;
+`;
+
+const Title = styled.h1`
+  color: #ffd700;
+  text-align: center;
+  margin-bottom: 2rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+`;
+
+const InstructionsBox = styled.div`
+  background: rgba(0, 0, 0, 0.8);
+  padding: 2rem;
+  border-radius: 10px;
+  border: 2px solid #ffd700;
+  width: 80%;
+  max-width: 800px;
+  overflow-y: auto;
+  max-height: 70vh;
+`;
+
+const Section = styled.div`
+  margin-bottom: 2rem;
+`;
+
+const SectionTitle = styled.h2`
+  color: #ffd700;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+`;
+
+const InstructionText = styled.p`
+  font-size: 0.8rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+`;
+
+const Button = styled(motion.button)`
+  background: #ffd700;
+  color: black;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.8rem;
+  margin-top: 1rem;
+  cursor: pointer;
+  border-radius: 5px;
+
+  &:hover {
+    background: #ffed4a;
+  }
+`;
 
 const Instructions = () => {
   const navigate = useNavigate();
 
+  const handleBack = () => {
+    navigate('/menu');
+  };
+
   return (
-    <div className="instructions-container">
-      <div className="instructions-content">
-        <h1 className="instructions-title">INSTRUCCIONES</h1>
-        
-        <div className="instructions-section">
-          <h2>CONTROLES</h2>
-          <ul>
-            <li>WASD - Movimiento</li>
-            <li>ESPACIO - Saltar</li>
-            <li>CLIC IZQUIERDO - Atacar</li>
-            <li>CLIC DERECHO - Bloquear</li>
-            <li>E - Interactuar</li>
-            <li>ESC - Menú</li>
-          </ul>
-        </div>
+    <InstructionsContainer>
+      <Title>INSTRUCCIONES</Title>
+      <InstructionsBox>
+        <Section>
+          <SectionTitle>CONTROLES BÁSICOS</SectionTitle>
+          <InstructionText>
+            - Usa las teclas de dirección para moverte<br />
+            - Presiona ESPACIO para interactuar<br />
+            - Usa ESC para abrir el menú
+          </InstructionText>
+        </Section>
 
-        <div className="instructions-section">
-          <h2>OBJETIVO</h2>
-          <p>
-            Tu misión es cazar monstruos y dragones en diferentes biomas.
-            Completa misiones, mejora tu equipo y conviértete en el mejor cazador.
-          </p>
-        </div>
+        <Section>
+          <SectionTitle>COMBATE</SectionTitle>
+          <InstructionText>
+            - Botón ATAQUE: Realiza un ataque básico (consume stamina)<br />
+            - Botón DEFENSA: Bloquea ataques enemigos (consume stamina)<br />
+            - Observa tu barra de vida y stamina<br />
+            - Los monstruos tienen patrones de ataque únicos
+          </InstructionText>
+        </Section>
 
-        <div className="instructions-section">
-          <h2>COMBATE</h2>
-          <p>
-            Cada arma tiene combos únicos y mecánicas especiales.
-            Aprende los patrones de ataque de los monstruos para vencerlos.
-          </p>
-        </div>
+        <Section>
+          <SectionTitle>PROGRESIÓN</SectionTitle>
+          <InstructionText>
+            - Gana experiencia derrotando monstruos<br />
+            - Sube de nivel para mejorar tus estadísticas<br />
+            - Recolecta materiales para craftear equipo<br />
+            - Completa misiones para obtener recompensas
+          </InstructionText>
+        </Section>
 
-        <button 
-          className="back-button"
-          onClick={() => navigate('/')}
+        <Section>
+          <SectionTitle>INVENTARIO</SectionTitle>
+          <InstructionText>
+            - Gestiona tus objetos y equipamiento<br />
+            - Usa pociones para recuperar vida<br />
+            - Equipa diferentes armas y armaduras<br />
+            - Recolecta materiales para crafteo
+          </InstructionText>
+        </Section>
+
+        <Section>
+          <SectionTitle>CONSEJOS</SectionTitle>
+          <InstructionText>
+            - Observa el clima, afecta al combate<br />
+            - Mantén tu stamina para emergencias<br />
+            - Aprende los patrones de los monstruos<br />
+            - Completa misiones diarias para progresar más rápido
+          </InstructionText>
+        </Section>
+
+        <Button
+          onClick={handleBack}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
-          VOLVER AL MENÚ
-        </button>
-      </div>
-    </div>
+          VOLVER
+        </Button>
+      </InstructionsBox>
+    </InstructionsContainer>
   );
 };
 

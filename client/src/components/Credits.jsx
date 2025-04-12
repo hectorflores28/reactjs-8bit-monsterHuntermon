@@ -1,48 +1,119 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../styles/Credits.css';
+import styled from 'styled-components';
+import { motion } from 'framer-motion';
+
+const CreditsContainer = styled.div`
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Press Start 2P', cursive;
+  color: white;
+`;
+
+const Title = styled.h1`
+  color: #ffd700;
+  text-align: center;
+  margin-bottom: 2rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+`;
+
+const CreditsBox = styled.div`
+  background: rgba(0, 0, 0, 0.8);
+  padding: 2rem;
+  border-radius: 10px;
+  border: 2px solid #ffd700;
+  width: 80%;
+  max-width: 600px;
+  overflow-y: auto;
+  max-height: 70vh;
+`;
+
+const Section = styled.div`
+  margin-bottom: 2rem;
+`;
+
+const SectionTitle = styled.h2`
+  color: #ffd700;
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+`;
+
+const CreditText = styled.p`
+  font-size: 0.8rem;
+  line-height: 1.6;
+  margin-bottom: 0.5rem;
+  text-align: center;
+`;
+
+const Button = styled(motion.button)`
+  background: #ffd700;
+  color: black;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.8rem;
+  margin-top: 1rem;
+  cursor: pointer;
+  border-radius: 5px;
+
+  &:hover {
+    background: #ffed4a;
+  }
+`;
 
 const Credits = () => {
   const navigate = useNavigate();
 
+  const handleBack = () => {
+    navigate('/menu');
+  };
+
   return (
-    <div className="credits-container">
-      <div className="credits-content">
-        <h1 className="credits-title">CRÉDITOS</h1>
-        
-        <div className="credits-section">
-          <h2>DESARROLLO</h2>
-          <p>Héctor Flores</p>
-        </div>
+    <CreditsContainer>
+      <Title>CRÉDITOS</Title>
+      <CreditsBox>
+        <Section>
+          <SectionTitle>DESARROLLO</SectionTitle>
+          <CreditText>Héctor Flores</CreditText>
+          <CreditText>Desarrollador Principal</CreditText>
+        </Section>
 
-        <div className="credits-section">
-          <h2>ARTE Y DISEÑO</h2>
-          <p>Inspirado en Pokémon Platino y The Legend of Zelda GBA</p>
-        </div>
+        <Section>
+          <SectionTitle>DISEÑO</SectionTitle>
+          <CreditText>Inspirado en Monster Hunter</CreditText>
+          <CreditText>Diseño de Interfaz: Héctor Flores</CreditText>
+          <CreditText>Diseño de Personajes: Héctor Flores</CreditText>
+        </Section>
 
-        <div className="credits-section">
-          <h2>AGRADECIMIENTOS ESPECIALES</h2>
-          <ul>
-            <li>Comunidad de desarrolladores de juegos retro</li>
-            <li>Capcom por Monster Hunter</li>
-            <li>Nintendo por Pokémon y Zelda</li>
-          </ul>
-        </div>
+        <Section>
+          <SectionTitle>TECNOLOGÍAS</SectionTitle>
+          <CreditText>React</CreditText>
+          <CreditText>Styled Components</CreditText>
+          <CreditText>Framer Motion</CreditText>
+          <CreditText>LocalStorage</CreditText>
+        </Section>
 
-        <div className="credits-section">
-          <h2>CONTACTO</h2>
-          <p>Twitter: @hectorflores28</p>
-          <p>Email: hectoralejandro_1@live.com.mx</p>
-        </div>
+        <Section>
+          <SectionTitle>AGRADECIMIENTOS</SectionTitle>
+          <CreditText>A todos los jugadores</CreditText>
+          <CreditText>A la comunidad de desarrollo</CreditText>
+          <CreditText>A los fans de Monster Hunter</CreditText>
+        </Section>
 
-        <button 
-          className="back-button"
-          onClick={() => navigate('/')}
+        <Button
+          onClick={handleBack}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
-          VOLVER AL MENÚ
-        </button>
-      </div>
-    </div>
+          VOLVER
+        </Button>
+      </CreditsBox>
+    </CreditsContainer>
   );
 };
 
