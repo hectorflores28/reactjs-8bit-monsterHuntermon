@@ -8,6 +8,8 @@ import FirstHunt from './components/FirstHunt';
 import Settings from './components/Settings';
 import Instructions from './components/Instructions';
 import Credits from './components/Credits';
+import Multiplayer from './components/Multiplayer';
+import CreateRoom from './components/CreateRoom';
 import './styles/App.css';
 
 function App() {
@@ -28,6 +30,11 @@ function App() {
           <Route path="/character-creation" element={<CharacterCreation />} />
           <Route path="/weapon-selection" element={<WeaponSelection />} />
           <Route path="/first-hunt" element={<FirstHunt />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/instructions" element={<Instructions />} />
+          <Route path="/credits" element={<Credits />} />
+          <Route path="/multiplayer" element={<Multiplayer />} />
+          <Route path="/multiplayer/create" element={<CreateRoom />} />
         </Routes>
 
         {showSettings && (

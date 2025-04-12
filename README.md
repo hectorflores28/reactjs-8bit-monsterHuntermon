@@ -1,14 +1,84 @@
-# 🎮 React Monster Hanter
+# MonsterHanter - Juego de Caza de Monstruos
 
 ![React](https://img.shields.io/badge/React-18.2.0-blue.svg)
 ![Node.js](https://img.shields.io/badge/Node.js-14+-green.svg)
 ![MongoDB](https://img.shields.io/badge/MongoDB-5.0+-green.svg)
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-Un juego estilo Monster Hunter desarrollado con React y Node.js, inspirado en el arte de Pokémon Platino y The Legend of Zelda GBA. ¡Embárcate en una aventura épica llena de dragones, monstruos y emocionantes batallas!
+## Descripción
+MonsterHanter es un juego de caza de monstruos con estilo retro 8 bits, donde los jugadores pueden crear su personaje, seleccionar armas y embarcarse en emocionantes cacerías.
 
-![Foto](public/screenshot.png)
-![Foto](public/screenshot1.png)
+## Características
+- Sistema de combate por turnos
+- Diseño retro 8 bits
+- Clima dinámico
+- Personalización de personaje
+- Sistema de crafting
+- Sistema de inventario
+- Sistema de misiones
+- Efectos de estado
+- Sistema de sonido
+
+## Tecnologías Utilizadas
+- React 18
+- React Router DOM
+- Styled Components
+- Framer Motion
+- Vite
+
+## Instalación
+1. Clona el repositorio
+2. Instala las dependencias:
+   ```bash
+   npm install
+   ```
+3. Inicia el servidor de desarrollo:
+   ```bash
+   npm run dev
+   ```
+
+## Estructura del Proyecto
+```
+client/
+  ├── src/
+  │   ├── components/
+  │   ├── styles/
+  │   └── App.jsx
+  ├── public/
+  └── package.json
+```
+
+## Controles
+- Flechas: Navegación
+- Enter: Seleccionar
+- Espacio: Atacar
+- Shift: Defender
+
+## Estado del Proyecto
+- [x] Pantalla de inicio
+- [x] Menú principal
+- [x] Creación de personaje
+- [x] Sistema de combate
+- [x] Sistema de progresión
+- [x] Sistema de inventario
+- [x] Sistema de misiones
+- [x] Sistema de crafting
+- [x] Sistema de clima
+- [x] Sistema de estados alterados
+- [x] Sistema de sonido
+
+## Próximas Características
+- Sistema de multijugador
+- Sistema de logros
+- Guardado en la nube
+- Más tipos de monstruos
+- Sistema de temporadas
+
+## Contribuciones
+Las contribuciones son bienvenidas. Por favor, abre un issue para discutir los cambios propuestos.
+
+## Licencia
+Este proyecto está bajo la Licencia MIT.
 
 ## 🎯 Características Principales
 
