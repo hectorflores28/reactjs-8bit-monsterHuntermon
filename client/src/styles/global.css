@@ -1,0 +1,194 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+:root {
+  --background-color: #000;
+  --text-color: #fff;
+  --primary-color: #4CAF50;
+  --secondary-color: #333;
+  --border-color: #666;
+}
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+body {
+  font-family: 'Press Start 2P', cursive;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+}
+
+.app {
+  width: 100%;
+  height: 100%;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  display: flex;
+  flex-direction: column;
+}
+
+.game-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background-color: var(--background-color);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Estilos para los botones */
+button {
+  font-family: 'Press Start 2P', cursive;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  transition: all 0.3s ease;
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+}
+
+button:hover {
+  transform: scale(1.05);
+  background-color: #444;
+}
+
+button:active {
+  transform: scale(0.95);
+}
+
+/* Estilos para los inputs */
+input, select {
+  font-family: 'Press Start 2P', cursive;
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+  border: 2px solid var(--border-color);
+  border-radius: 5px;
+  padding: 0.5rem;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+/* Estilos para los diálogos */
+.dialog-box {
+  background-color: rgba(0, 0, 0, 0.8);
+  border: 4px solid var(--text-color);
+  border-radius: 10px;
+  padding: 1rem;
+  color: var(--text-color);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* Estilos para las barras de vida */
+.health-bar {
+  background-color: rgba(0, 0, 0, 0.5);
+  border: 2px solid var(--text-color);
+  border-radius: 5px;
+  overflow: hidden;
+  width: 200px;
+  height: 20px;
+}
+
+.health-bar-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+  background-color: var(--primary-color);
+}
+
+/* Estilos para las animaciones */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes blink {
+  0% { opacity: 1; }
+  50% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+/* Estilos para los sprites */
+.sprite {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+/* Estilos para los contenedores de selección */
+.selection-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  width: 100%;
+  height: 100%;
+  background-color: var(--background-color);
+}
+
+/* Estilos para las tarjetas */
+.card {
+  background-color: rgba(0, 0, 0, 0.7);
+  border: 4px solid var(--border-color);
+  border-radius: 10px;
+  padding: 1rem;
+  transition: all 0.3s ease;
+  color: var(--text-color);
+}
+
+.card:hover {
+  border-color: #FFD700;
+  transform: scale(1.05);
+}
+
+/* Estilos para los títulos */
+.title {
+  text-align: center;
+  margin-bottom: 2rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  color: var(--text-color);
+}
+
+/* Estilos para los textos */
+.text {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--text-color);
+}
+
+/* Estilos para los mensajes de error */
+.error-message {
+  color: #F44336;
+  font-size: 0.8rem;
+  text-align: center;
+  margin-top: 0.5rem;
+}
+
+/* Estilos para los mensajes de éxito */
+.success-message {
+  color: var(--primary-color);
+  font-size: 0.8rem;
+  text-align: center;
+  margin-top: 0.5rem;
+} 

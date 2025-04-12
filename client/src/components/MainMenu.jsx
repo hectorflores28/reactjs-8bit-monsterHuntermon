@@ -1,47 +1,52 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
 import useGameStore from '../stores/gameStore';
 
 const MenuContainer = styled.div`
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
+    background: url('/assets/menu-background.png') no-repeat center center;
+    background-size: cover;
     display: flex;
-    flex-direction: column;
-    align-items: center;
     justify-content: center;
-    background-color: ${props => props.theme.colors.background};
-    color: ${props => props.theme.colors.text};
-    font-family: ${props => props.theme.fonts.primary};
+    align-items: center;
+`;
+
+const MenuBox = styled.div`
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 4px solid #fff;
+    border-radius: 10px;
+    padding: 2rem;
+    width: 300px;
+`;
+
+const MenuItem = styled.div`
+    color: white;
+    font-size: 1rem;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    
+    &:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        transform: scale(1.05);
+    }
+    
+    &::before {
+        content: '▶';
+        margin-right: 1rem;
+        opacity: ${props => props.selected ? 1 : 0};
+    }
 `;
 
 const Title = styled(motion.h1)`
     font-size: 2.5rem;
     margin-bottom: ${props => props.theme.spacing.xl};
     text-shadow: 0 0 10px ${props => props.theme.colors.primary};
-`;
-
-const MenuButton = styled(motion.button)`
-    width: 300px;
-    padding: ${props => props.theme.spacing.md};
-    margin: ${props => props.theme.spacing.sm};
-    font-size: 1.2rem;
-    background-color: ${props => props.theme.colors.surface};
-    color: ${props => props.theme.colors.text};
-    border: 2px solid ${props => props.theme.colors.primary};
-    border-radius: 8px;
-    cursor: pointer;
-    font-family: ${props => props.theme.fonts.primary};
-    
-    &:hover {
-        background-color: ${props => props.theme.colors.primary};
-        color: ${props => props.theme.colors.background};
-    }
-    
-    &:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
 `;
 
 const PlayerStats = styled.div`
@@ -64,12 +69,38 @@ const PlayerStats = styled.div`
 `;
 
 const MainMenu = () => {
+    const [selectedItem, setSelectedItem] = useState(0);
     const navigate = useNavigate();
     const { jugador } = useGameStore();
 
-    const handleMenuOption = (ruta) => {
-        navigate(ruta);
+    const menuItems = [
+        { text: 'Nueva Partida', action: () => navigate('/character-creation') },
+        { text: 'Continuar', action: () => console.log('Continuar') },
+        { text: 'Configuración', action: () => console.log('Configuración') },
+        { text: 'Créditos', action: () => console.log('Créditos') },
+        { text: 'Salir', action: () => window.close() }
+    ];
+
+    const handleKeyDown = (e) => {
+        switch(e.key) {
+            case 'ArrowUp':
+                setSelectedItem(prev => (prev > 0 ? prev - 1 : menuItems.length - 1));
+                break;
+            case 'ArrowDown':
+                setSelectedItem(prev => (prev < menuItems.length - 1 ? prev + 1 : 0));
+                break;
+            case 'Enter':
+                menuItems[selectedItem].action();
+                break;
+            default:
+                break;
+        }
     };
+
+    useEffect(() => {
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [selectedItem]);
 
     return (
         <MenuContainer>
@@ -81,45 +112,20 @@ const MainMenu = () => {
                 </PlayerStats>
             )}
             
-            <Title
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ duration: 0.5 }}
-            >
-                Menú Principal
-            </Title>
-            
-            <MenuButton
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => handleMenuOption('/hunt')}
-            >
-                Ir de Caza
-            </MenuButton>
-            
-            <MenuButton
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => handleMenuOption('/inventory')}
-            >
-                Inventario
-            </MenuButton>
-            
-            <MenuButton
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => handleMenuOption('/character')}
-            >
-                Personaje
-            </MenuButton>
-            
-            <MenuButton
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => handleMenuOption('/shop')}
-            >
-                Tienda
-            </MenuButton>
+            <MenuBox>
+                {menuItems.map((item, index) => (
+                    <MenuItem
+                        key={index}
+                        selected={selectedItem === index}
+                        onClick={() => {
+                            setSelectedItem(index);
+                            item.action();
+                        }}
+                    >
+                        {item.text}
+                    </MenuItem>
+                ))}
+            </MenuBox>
         </MenuContainer>
     );
 };
