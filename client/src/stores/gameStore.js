@@ -1,54 +1,80 @@
 import { create } from 'zustand';
 
 const useGameStore = create((set) => ({
-  // Estado del juego
   jugador: null,
-  monstruo: null,
+  monstruoActual: null,
   enCombate: false,
-  error: null,
-  cargando: false,
-
-  // Acciones básicas
-  crearJugador: (nombre) => {
-    try {
-      // Por ahora, solo guardamos localmente
-      const nuevoJugador = {
-        id: Date.now(), // ID temporal
-        nombre: nombre,
-        nivel: 1,
-        vida: 100,
-        energia: 100,
-        experiencia: 0,
-        oro: 0,
-        inventario: []
-      };
-      
-      set({ jugador: nuevoJugador, error: null });
-      return nuevoJugador;
-    } catch (error) {
-      set({ error: 'Error al crear el jugador' });
-      throw error;
+  inventario: [],
+  misiones: [],
+  
+  crearJugador: (datosPersonaje) => set((state) => ({
+    jugador: {
+      ...datosPersonaje,
+      nivel: 1,
+      experiencia: 0,
+      vida: 100,
+      vidaMaxima: 100,
+      stamina: 100,
+      staminaMaxima: 100,
+      ataque: 10,
+      defensa: 5,
+      velocidad: 5,
+      zenny: 1000,
+      armas: [],
+      armadura: null,
+      items: [],
+      misionesCompletadas: 0
     }
-  },
+  })),
 
-  // Acciones de combate
-  iniciarCombate: (monstruo) => {
-    set({ monstruo, enCombate: true });
-  },
+  iniciarCombate: (monstruo) => set((state) => ({
+    monstruoActual: monstruo,
+    enCombate: true
+  })),
 
-  finalizarCombate: () => {
-    set({ monstruo: null, enCombate: false });
-  },
+  terminarCombate: () => set((state) => ({
+    monstruoActual: null,
+    enCombate: false
+  })),
+
+  actualizarJugador: (datos) => set((state) => ({
+    jugador: {
+      ...state.jugador,
+      ...datos
+    }
+  })),
+
+  agregarItem: (item) => set((state) => ({
+    inventario: [...state.inventario, item]
+  })),
+
+  removerItem: (itemId) => set((state) => ({
+    inventario: state.inventario.filter(item => item.id !== itemId)
+  })),
+
+  agregarMision: (mision) => set((state) => ({
+    misiones: [...state.misiones, mision]
+  })),
+
+  completarMision: (misionId) => set((state) => ({
+    misiones: state.misiones.map(mision => 
+      mision.id === misionId 
+        ? { ...mision, completada: true }
+        : mision
+    )
+  })),
 
   // Utilidades
   reiniciarJuego: () => {
     set({
       jugador: null,
-      monstruo: null,
+      monstruoActual: null,
       enCombate: false,
+      inventario: [],
+      misiones: [],
       error: null
     });
   }
 }));
 
-export { useGameStore }; 
+export default useGameStore; 

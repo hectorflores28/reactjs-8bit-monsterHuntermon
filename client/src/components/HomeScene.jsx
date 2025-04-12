@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const SceneContainer = styled.div`
   width: 100vw;
@@ -9,9 +10,10 @@ const SceneContainer = styled.div`
   background-size: cover;
   position: relative;
   overflow: hidden;
+  font-family: 'Press Start 2P', cursive;
 `;
 
-const Character = styled.div`
+const Character = styled(motion.div)`
   position: absolute;
   width: 64px;
   height: 64px;
@@ -20,10 +22,10 @@ const Character = styled.div`
   bottom: 20%;
   left: 50%;
   transform: translateX(-50%);
-  transition: all 0.3s ease;
+  image-rendering: pixelated;
 `;
 
-const DialogBox = styled.div`
+const DialogBox = styled(motion.div)`
   position: absolute;
   bottom: 10%;
   left: 50%;
@@ -31,19 +33,16 @@ const DialogBox = styled.div`
   width: 80%;
   max-width: 800px;
   background-color: rgba(0, 0, 0, 0.8);
-  border: 4px solid #fff;
+  border: 4px solid #f1c40f;
   border-radius: 10px;
   padding: 1rem;
   color: white;
-  font-family: 'Press Start 2P', cursive;
   font-size: 0.8rem;
   line-height: 1.5;
   text-align: center;
-  opacity: ${props => props.show ? 1 : 0};
-  transition: opacity 0.5s ease;
 `;
 
-const Monster = styled.div`
+const Monster = styled(motion.div)`
   position: absolute;
   width: 128px;
   height: 128px;
@@ -51,15 +50,33 @@ const Monster = styled.div`
   background-size: contain;
   bottom: 20%;
   right: -128px;
-  transform: ${props => props.attacking ? 'translateX(-200px)' : 'translateX(0)'};
-  transition: transform 1s ease;
+  image-rendering: pixelated;
 `;
 
-const HomeScene = ({ gameState }) => {
-  const [showDialog, setShowDialog] = useState(false);
-  const [monsterAttacking, setMonsterAttacking] = useState(false);
-  const [currentDialog, setCurrentDialog] = useState(0);
+const ContinueButton = styled(motion.button)`
+  position: absolute;
+  bottom: 5%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.5rem 1rem;
+  background-color: #f1c40f;
+  color: #000;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.8rem;
+  
+  &:hover {
+    background-color: #f39c12;
+  }
+`;
+
+const HomeScene = () => {
   const navigate = useNavigate();
+  const [currentDialog, setCurrentDialog] = useState(0);
+  const [showMonster, setShowMonster] = useState(false);
+  const [showContinue, setShowContinue] = useState(false);
 
   const dialogs = [
     "¡Bienvenido a tu nuevo hogar!",
@@ -69,39 +86,61 @@ const HomeScene = ({ gameState }) => {
   ];
 
   useEffect(() => {
-    // Mostrar el primer diálogo después de 2 segundos
-    const timer1 = setTimeout(() => {
-      setShowDialog(true);
-    }, 2000);
+    const timer = setTimeout(() => {
+      if (currentDialog < dialogs.length - 1) {
+        setCurrentDialog(prev => prev + 1);
+      } else {
+        setShowContinue(true);
+      }
+    }, 3000);
 
-    // Mostrar el monstruo atacando después de 8 segundos
-    const timer2 = setTimeout(() => {
-      setMonsterAttacking(true);
-      setCurrentDialog(2);
-    }, 8000);
+    if (currentDialog === 2) {
+      setShowMonster(true);
+    }
 
-    // Navegar a la selección de armas después de 12 segundos
-    const timer3 = setTimeout(() => {
-      setCurrentDialog(3);
-      setTimeout(() => {
-        navigate('/weapon-selection');
-      }, 3000);
-    }, 12000);
+    return () => clearTimeout(timer);
+  }, [currentDialog]);
 
-    return () => {
-      clearTimeout(timer1);
-      clearTimeout(timer2);
-      clearTimeout(timer3);
-    };
-  }, [navigate]);
+  const handleContinue = () => {
+    navigate('/weapon-selection');
+  };
 
   return (
     <SceneContainer>
-      <Character />
-      <Monster attacking={monsterAttacking} />
-      <DialogBox show={showDialog}>
+      <Character
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1 }}
+      />
+      
+      <AnimatePresence>
+        {showMonster && (
+          <Monster
+            initial={{ x: '100%' }}
+            animate={{ x: '0%' }}
+            transition={{ duration: 1 }}
+          />
+        )}
+      </AnimatePresence>
+
+      <DialogBox
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        key={currentDialog}
+      >
         {dialogs[currentDialog]}
       </DialogBox>
+
+      {showContinue && (
+        <ContinueButton
+          onClick={handleContinue}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          CONTINUAR
+        </ContinueButton>
+      )}
     </SceneContainer>
   );
 };

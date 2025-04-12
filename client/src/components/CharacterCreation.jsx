@@ -1,165 +1,214 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import { motion } from 'framer-motion';
+import { useGameStore } from '../stores/gameStore';
 
 const CreationContainer = styled.div`
   width: 100vw;
   height: 100vh;
-  background: url('/assets/creation-background.png') no-repeat center center;
-  background-size: cover;
+  background-color: #2c3e50;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
+  font-family: 'Press Start 2P', cursive;
+  color: #ecf0f1;
 `;
 
-const CreationBox = styled.div`
+const CharacterPreview = styled.div`
+  width: 128px;
+  height: 128px;
+  background-color: #34495e;
+  border: 4px solid #f1c40f;
+  margin-bottom: 2rem;
+  image-rendering: pixelated;
+  background-image: url(${props => props.sprite});
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+`;
+
+const CustomizationPanel = styled.div`
   background-color: rgba(0, 0, 0, 0.8);
-  border: 4px solid #fff;
+  border: 4px solid #f1c40f;
   border-radius: 10px;
   padding: 2rem;
-  width: 600px;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+  width: 80%;
+  max-width: 600px;
 `;
 
-const Title = styled.h1`
-  color: white;
-  font-family: 'Press Start 2P', cursive;
-  font-size: 1.5rem;
-  text-align: center;
-  margin-bottom: 2rem;
+const OptionGroup = styled.div`
+  margin-bottom: 1.5rem;
 `;
 
-const InputGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-`;
-
-const Label = styled.label`
-  color: white;
-  font-family: 'Press Start 2P', cursive;
-  font-size: 0.8rem;
-`;
-
-const Input = styled.input`
-  padding: 0.5rem;
-  font-family: 'Press Start 2P', cursive;
-  font-size: 0.8rem;
-  background-color: #333;
-  color: white;
-  border: 2px solid #666;
-  border-radius: 5px;
-`;
-
-const Select = styled.select`
-  padding: 0.5rem;
-  font-family: 'Press Start 2P', cursive;
-  font-size: 0.8rem;
-  background-color: #333;
-  color: white;
-  border: 2px solid #666;
-  border-radius: 5px;
-`;
-
-const Button = styled.button`
-  padding: 1rem;
-  font-family: 'Press Start 2P', cursive;
+const OptionTitle = styled.h3`
+  color: #f1c40f;
+  margin-bottom: 1rem;
   font-size: 1rem;
-  background-color: #4CAF50;
-  color: white;
-  border: none;
+`;
+
+const OptionList = styled.div`
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+`;
+
+const OptionButton = styled(motion.button)`
+  padding: 0.5rem 1rem;
+  background-color: ${props => props.selected ? '#f1c40f' : '#34495e'};
+  color: ${props => props.selected ? '#000' : '#ecf0f1'};
+  border: 2px solid #f1c40f;
   border-radius: 5px;
   cursor: pointer;
-  margin-top: 2rem;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.8rem;
   
   &:hover {
-    background-color: #45a049;
+    transform: scale(1.05);
   }
 `;
 
-const CharacterCreation = ({ setGameState }) => {
+const StartButton = styled(motion.button)`
+  padding: 1rem 2rem;
+  background-color: #f1c40f;
+  color: #000;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 1rem;
+  margin-top: 2rem;
+  
+  &:hover {
+    background-color: #f39c12;
+  }
+`;
+
+const CharacterCreation = () => {
+  const navigate = useNavigate();
+  const { crearJugador } = useGameStore();
   const [character, setCharacter] = useState({
-    name: '',
-    gender: 'male',
-    skinColor: '#FFD700',
-    hairColor: '#000000',
-    hairStyle: 'short'
+    nombre: '',
+    genero: 'masculino',
+    clase: 'cazador',
+    colorPelo: 'negro',
+    colorRopa: 'azul'
   });
 
-  const navigate = useNavigate();
+  const generos = ['masculino', 'femenino'];
+  const clases = ['cazador', 'cazadora', 'artillero', 'artillera'];
+  const coloresPelo = ['negro', 'rubio', 'castaño', 'rojo'];
+  const coloresRopa = ['azul', 'rojo', 'verde', 'negro'];
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setGameState(prev => ({
+  const handleStart = () => {
+    if (!character.nombre.trim()) {
+      alert('Por favor, ingresa un nombre para tu personaje');
+      return;
+    }
+    crearJugador(character);
+    navigate('/home-scene');
+  };
+
+  const updateCharacter = (key, value) => {
+    setCharacter(prev => ({
       ...prev,
-      character
+      [key]: value
     }));
-    navigate('/home');
   };
 
   return (
     <CreationContainer>
-      <CreationBox>
-        <Title>Crear Personaje</Title>
-        <form onSubmit={handleSubmit}>
-          <InputGroup>
-            <Label>Nombre:</Label>
-            <Input
-              type="text"
-              value={character.name}
-              onChange={(e) => setCharacter({...character, name: e.target.value})}
-              maxLength={12}
-              required
-            />
-          </InputGroup>
+      <CharacterPreview sprite={`/assets/characters/${character.genero}-${character.clase}-${character.colorPelo}-${character.colorRopa}.png`} />
+      
+      <CustomizationPanel>
+        <OptionGroup>
+          <OptionTitle>NOMBRE</OptionTitle>
+          <input
+            type="text"
+            value={character.nombre}
+            onChange={(e) => updateCharacter('nombre', e.target.value)}
+            style={{
+              width: '100%',
+              padding: '0.5rem',
+              fontFamily: "'Press Start 2P', cursive",
+              fontSize: '0.8rem',
+              backgroundColor: '#34495e',
+              color: '#ecf0f1',
+              border: '2px solid #f1c40f',
+              borderRadius: '5px'
+            }}
+          />
+        </OptionGroup>
 
-          <InputGroup>
-            <Label>Género:</Label>
-            <Select
-              value={character.gender}
-              onChange={(e) => setCharacter({...character, gender: e.target.value})}
-            >
-              <option value="male">Masculino</option>
-              <option value="female">Femenino</option>
-            </Select>
-          </InputGroup>
+        <OptionGroup>
+          <OptionTitle>GÉNERO</OptionTitle>
+          <OptionList>
+            {generos.map(genero => (
+              <OptionButton
+                key={genero}
+                selected={character.genero === genero}
+                onClick={() => updateCharacter('genero', genero)}
+              >
+                {genero.toUpperCase()}
+              </OptionButton>
+            ))}
+          </OptionList>
+        </OptionGroup>
 
-          <InputGroup>
-            <Label>Color de Piel:</Label>
-            <Input
-              type="color"
-              value={character.skinColor}
-              onChange={(e) => setCharacter({...character, skinColor: e.target.value})}
-            />
-          </InputGroup>
+        <OptionGroup>
+          <OptionTitle>CLASE</OptionTitle>
+          <OptionList>
+            {clases.map(clase => (
+              <OptionButton
+                key={clase}
+                selected={character.clase === clase}
+                onClick={() => updateCharacter('clase', clase)}
+              >
+                {clase.toUpperCase()}
+              </OptionButton>
+            ))}
+          </OptionList>
+        </OptionGroup>
 
-          <InputGroup>
-            <Label>Color de Cabello:</Label>
-            <Input
-              type="color"
-              value={character.hairColor}
-              onChange={(e) => setCharacter({...character, hairColor: e.target.value})}
-            />
-          </InputGroup>
+        <OptionGroup>
+          <OptionTitle>COLOR DE PELO</OptionTitle>
+          <OptionList>
+            {coloresPelo.map(color => (
+              <OptionButton
+                key={color}
+                selected={character.colorPelo === color}
+                onClick={() => updateCharacter('colorPelo', color)}
+              >
+                {color.toUpperCase()}
+              </OptionButton>
+            ))}
+          </OptionList>
+        </OptionGroup>
 
-          <InputGroup>
-            <Label>Estilo de Cabello:</Label>
-            <Select
-              value={character.hairStyle}
-              onChange={(e) => setCharacter({...character, hairStyle: e.target.value})}
-            >
-              <option value="short">Corto</option>
-              <option value="medium">Medio</option>
-              <option value="long">Largo</option>
-              <option value="spiky">Puntiagudo</option>
-            </Select>
-          </InputGroup>
+        <OptionGroup>
+          <OptionTitle>COLOR DE ROPA</OptionTitle>
+          <OptionList>
+            {coloresRopa.map(color => (
+              <OptionButton
+                key={color}
+                selected={character.colorRopa === color}
+                onClick={() => updateCharacter('colorRopa', color)}
+              >
+                {color.toUpperCase()}
+              </OptionButton>
+            ))}
+          </OptionList>
+        </OptionGroup>
 
-          <Button type="submit">Crear Personaje</Button>
-        </form>
-      </CreationBox>
+        <StartButton
+          onClick={handleStart}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          COMENZAR AVENTURA
+        </StartButton>
+      </CustomizationPanel>
     </CreationContainer>
   );
 };

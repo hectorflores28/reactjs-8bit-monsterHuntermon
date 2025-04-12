@@ -45,3 +45,9 @@ client/.env
 # Server specific
 server/node_modules/
 server/.env
+
+# Notas para el proyecto
+notas.txt
+
+# Prompts
+prompts.txt

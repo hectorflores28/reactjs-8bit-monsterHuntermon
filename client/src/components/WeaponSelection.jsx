@@ -1,25 +1,26 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
+import { motion } from 'framer-motion';
+import useGameStore from '../stores/gameStore';
 
 const SelectionContainer = styled.div`
   width: 100vw;
   height: 100vh;
-  background: url('/assets/weapon-selection-bg.png') no-repeat center center;
-  background-size: cover;
+  background-color: #2c3e50;
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 2rem;
+  justify-content: center;
+  font-family: 'Press Start 2P', cursive;
+  color: #ecf0f1;
 `;
 
 const Title = styled.h1`
-  color: white;
-  font-family: 'Press Start 2P', cursive;
-  font-size: 1.5rem;
-  text-align: center;
+  color: #f1c40f;
   margin-bottom: 2rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  text-shadow: 3px 3px 0 #000;
+  letter-spacing: 2px;
 `;
 
 const WeaponsGrid = styled.div`
@@ -27,192 +28,238 @@ const WeaponsGrid = styled.div`
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
   width: 80%;
-  max-width: 1200px;
+  max-width: 800px;
 `;
 
-const WeaponCard = styled.div`
-  background-color: rgba(0, 0, 0, 0.7);
-  border: 4px solid ${props => props.selected ? '#FFD700' : '#666'};
+const WeaponCard = styled(motion.div)`
+  background-color: rgba(0, 0, 0, 0.8);
+  border: 4px solid ${props => props.selected ? '#f1c40f' : '#34495e'};
   border-radius: 10px;
   padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   cursor: pointer;
+  text-align: center;
   transition: all 0.3s ease;
-  
+
   &:hover {
     transform: scale(1.05);
-    border-color: #FFD700;
+    border-color: #f1c40f;
   }
 `;
 
-const WeaponImage = styled.img`
+const WeaponIcon = styled.div`
   width: 64px;
   height: 64px;
-  margin-bottom: 0.5rem;
+  margin: 0 auto 1rem;
+  background-image: url(${props => props.sprite});
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  image-rendering: pixelated;
 `;
 
 const WeaponName = styled.h3`
-  color: white;
-  font-family: 'Press Start 2P', cursive;
+  color: #f1c40f;
+  margin-bottom: 0.5rem;
   font-size: 0.8rem;
-  text-align: center;
-  margin: 0;
 `;
 
-const WeaponDescription = styled.p`
-  color: #ccc;
-  font-family: 'Press Start 2P', cursive;
+const WeaponStats = styled.div`
   font-size: 0.6rem;
-  text-align: center;
-  margin: 0.5rem 0;
+  color: #bdc3c7;
 `;
 
-const SelectButton = styled.button`
+const ConfirmButton = styled(motion.button)`
+  margin-top: 2rem;
   padding: 1rem 2rem;
-  font-family: 'Press Start 2P', cursive;
-  font-size: 1rem;
-  background-color: #4CAF50;
-  color: white;
+  background-color: #f1c40f;
+  color: #000;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  margin-top: 2rem;
-  opacity: ${props => props.disabled ? 0.5 : 1};
+  font-family: 'Press Start 2P', cursive;
+  font-size: 1rem;
   
-  &:hover:not(:disabled) {
-    background-color: #45a049;
+  &:hover {
+    background-color: #f39c12;
   }
 `;
 
 const weapons = [
   {
     id: 1,
-    name: "Espada Grande",
-    image: "/assets/weapons/greatsword.png",
-    description: "Un arma pesada pero poderosa"
+    nombre: 'ESPADA GRANDE',
+    sprite: '/assets/weapons/greatsword.png',
+    ataque: 15,
+    velocidad: 5,
+    alcance: 3,
+    descripcion: 'Una espada enorme que inflige gran daño'
   },
   {
     id: 2,
-    name: "Espada Larga",
-    image: "/assets/weapons/longsword.png",
-    description: "Equilibrio perfecto entre velocidad y poder"
+    nombre: 'ESPADA LARGA',
+    sprite: '/assets/weapons/longsword.png',
+    ataque: 12,
+    velocidad: 8,
+    alcance: 4,
+    descripcion: 'Una espada versátil y equilibrada'
   },
   {
     id: 3,
-    name: "Espada y Escudo",
-    image: "/assets/weapons/swordshield.png",
-    description: "Defensa y ataque en perfecta armonía"
+    nombre: 'ESPADA Y ESCUDO',
+    sprite: '/assets/weapons/swordshield.png',
+    ataque: 10,
+    velocidad: 10,
+    alcance: 2,
+    descripcion: 'Perfecta para defensa y ataque'
   },
   {
     id: 4,
-    name: "Martillo",
-    image: "/assets/weapons/hammer.png",
-    description: "Aplasta a tus enemigos con fuerza bruta"
+    nombre: 'MARTILLO',
+    sprite: '/assets/weapons/hammer.png',
+    ataque: 18,
+    velocidad: 4,
+    alcance: 2,
+    descripcion: 'Ideal para romper defensas'
   },
   {
     id: 5,
-    name: "Hacha Espada",
-    image: "/assets/weapons/switchaxe.png",
-    description: "Transforma tu arma en diferentes modos"
+    nombre: 'HACHA DE GUERRA',
+    sprite: '/assets/weapons/switchaxe.png',
+    ataque: 16,
+    velocidad: 6,
+    alcance: 3,
+    descripcion: 'Poderosa y versátil'
   },
   {
     id: 6,
-    name: "Lanza",
-    image: "/assets/weapons/lance.png",
-    description: "Defensa impenetrable y ataques precisos"
+    nombre: 'LANZA',
+    sprite: '/assets/weapons/lance.png',
+    ataque: 13,
+    velocidad: 7,
+    alcance: 5,
+    descripcion: 'Gran alcance y defensa'
   },
   {
     id: 7,
-    name: "Lanza Pistola",
-    image: "/assets/weapons/gunlance.png",
-    description: "Combina ataques cuerpo a cuerpo con disparos"
+    nombre: 'LANZA DE PISTÓN',
+    sprite: '/assets/weapons/gunlance.png',
+    ataque: 14,
+    velocidad: 6,
+    alcance: 4,
+    descripcion: 'Combina ataque y explosiones'
   },
   {
     id: 8,
-    name: "Dual Blades",
-    image: "/assets/weapons/dualblades.png",
-    description: "Ataques rápidos y furiosos"
+    nombre: 'ESPADA DOBLE',
+    sprite: '/assets/weapons/dualswords.png',
+    ataque: 11,
+    velocidad: 12,
+    alcance: 2,
+    descripcion: 'Ataques rápidos y furiosos'
   },
   {
     id: 9,
-    name: "Hunting Horn",
-    image: "/assets/weapons/huntinghorn.png",
-    description: "Apoya a tu equipo con melodías poderosas"
+    nombre: 'CUERNO DE CAZA',
+    sprite: '/assets/weapons/huntinghorn.png',
+    ataque: 12,
+    velocidad: 7,
+    alcance: 3,
+    descripcion: 'Apoya al equipo con melodías'
   },
   {
     id: 10,
-    name: "Insect Glaive",
-    image: "/assets/weapons/insectglaive.png",
-    description: "Ataques aéreos y control de insectos"
+    nombre: 'ARCO',
+    sprite: '/assets/weapons/bow.png',
+    ataque: 10,
+    velocidad: 9,
+    alcance: 8,
+    descripcion: 'Ataques a distancia precisos'
   },
   {
     id: 11,
-    name: "Charge Blade",
-    image: "/assets/weapons/chargeblade.png",
-    description: "Combina espada y hacha con cargas de energía"
+    nombre: 'BALLESTA LIGERA',
+    sprite: '/assets/weapons/lightbowgun.png',
+    ataque: 9,
+    velocidad: 11,
+    alcance: 7,
+    descripcion: 'Rápida y versátil'
   },
   {
     id: 12,
-    name: "Bow",
-    image: "/assets/weapons/bow.png",
-    description: "Ataques a distancia con diferentes tipos de flechas"
+    nombre: 'BALLESTA PESADA',
+    sprite: '/assets/weapons/heavybowgun.png',
+    ataque: 14,
+    velocidad: 5,
+    alcance: 9,
+    descripcion: 'Poderosa pero lenta'
   },
   {
     id: 13,
-    name: "Light Bowgun",
-    image: "/assets/weapons/lightbowgun.png",
-    description: "Movilidad y disparos rápidos"
+    nombre: 'KATANA',
+    sprite: '/assets/weapons/katana.png',
+    ataque: 13,
+    velocidad: 9,
+    alcance: 3,
+    descripcion: 'Elegante y letal'
   },
   {
     id: 14,
-    name: "Heavy Bowgun",
-    image: "/assets/weapons/heavybowgun.png",
-    description: "Poder de fuego masivo y munición especial"
+    nombre: 'MARTILLO DE PISTÓN',
+    sprite: '/assets/weapons/chargeblade.png',
+    ataque: 17,
+    velocidad: 6,
+    alcance: 3,
+    descripcion: 'Transformable y poderosa'
   }
 ];
 
-const WeaponSelection = ({ setGameState }) => {
-  const [selectedWeapon, setSelectedWeapon] = useState(null);
+const WeaponSelection = () => {
   const navigate = useNavigate();
+  const { actualizarJugador } = useGameStore();
+  const [armaSeleccionada, setArmaSeleccionada] = useState(null);
 
-  const handleWeaponSelect = (weapon) => {
-    setSelectedWeapon(weapon);
+  const handleWeaponSelect = (arma) => {
+    setArmaSeleccionada(arma);
   };
 
   const handleConfirm = () => {
-    if (selectedWeapon) {
-      setGameState(prev => ({
-        ...prev,
-        weapon: selectedWeapon
-      }));
-      navigate('/first-hunt');
+    if (!armaSeleccionada) {
+      alert('Por favor, selecciona un arma');
+      return;
     }
+    actualizarJugador({ arma: armaSeleccionada });
+    navigate('/first-hunt');
   };
 
   return (
     <SelectionContainer>
-      <Title>Selecciona tu Arma</Title>
+      <Title>SELECCIONA TU ARMA</Title>
       <WeaponsGrid>
-        {weapons.map(weapon => (
+        {weapons.map(arma => (
           <WeaponCard
-            key={weapon.id}
-            selected={selectedWeapon?.id === weapon.id}
-            onClick={() => handleWeaponSelect(weapon)}
+            key={arma.id}
+            selected={armaSeleccionada?.id === arma.id}
+            onClick={() => handleWeaponSelect(arma)}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
           >
-            <WeaponImage src={weapon.image} alt={weapon.name} />
-            <WeaponName>{weapon.name}</WeaponName>
-            <WeaponDescription>{weapon.description}</WeaponDescription>
+            <WeaponIcon sprite={arma.sprite} />
+            <WeaponName>{arma.nombre}</WeaponName>
+            <WeaponStats>
+              <div>ATAQUE: {arma.ataque}</div>
+              <div>VELOCIDAD: {arma.velocidad}</div>
+              <div>ALCANCE: {arma.alcance}</div>
+            </WeaponStats>
           </WeaponCard>
         ))}
       </WeaponsGrid>
-      <SelectButton
+      <ConfirmButton
         onClick={handleConfirm}
-        disabled={!selectedWeapon}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
       >
-        Confirmar Arma
-      </SelectButton>
+        CONFIRMAR
+      </ConfirmButton>
     </SelectionContainer>
   );
 };
