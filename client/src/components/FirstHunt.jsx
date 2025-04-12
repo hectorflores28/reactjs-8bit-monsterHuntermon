@@ -7,6 +7,7 @@ import ProgressionSystem from './ProgressionSystem';
 import InventorySystem from './InventorySystem';
 import MissionSystem from './MissionSystem';
 import CraftingSystem from './CraftingSystem';
+import WeatherSystem from './WeatherSystem';
 
 const HuntContainer = styled.div`
   width: 100vw;
@@ -225,6 +226,7 @@ const FirstHunt = () => {
       <InventorySystem />
       <MissionSystem />
       <CraftingSystem />
+      <WeatherSystem />
       <HealthBars>
         <HealthBar health={playerHealth} />
         <HealthBar health={monsterHealth} />
