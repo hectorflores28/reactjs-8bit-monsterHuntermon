@@ -6,6 +6,7 @@ import useGameStore from '../stores/gameStore';
 import ProgressionSystem from './ProgressionSystem';
 import InventorySystem from './InventorySystem';
 import MissionSystem from './MissionSystem';
+import CraftingSystem from './CraftingSystem';
 
 const HuntContainer = styled.div`
   width: 100vw;
@@ -223,6 +224,7 @@ const FirstHunt = () => {
       <ProgressionSystem />
       <InventorySystem />
       <MissionSystem />
+      <CraftingSystem />
       <HealthBars>
         <HealthBar health={playerHealth} />
         <HealthBar health={monsterHealth} />
