@@ -26,8 +26,8 @@ const WeaponsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
-  width: 80%;
-  max-width: 800px;
+  width: 90%;
+  max-width: 1200px;
   margin-bottom: 2rem;
 `;
 
@@ -94,19 +94,19 @@ const weapons = [
   },
   {
     id: 2,
+    name: 'ESPADA LARGA',
+    damage: 80,
+    speed: 70,
+    range: 2,
+    description: 'Versátil y equilibrada'
+  },
+  {
+    id: 3,
     name: 'ESPADA Y ESCUDO',
     damage: 70,
     speed: 80,
     range: 1,
     description: 'Equilibrio entre ataque y defensa'
-  },
-  {
-    id: 3,
-    name: 'LANZA',
-    damage: 80,
-    speed: 60,
-    range: 2,
-    description: 'Alcance medio con buen daño'
   },
   {
     id: 4,
@@ -118,6 +118,46 @@ const weapons = [
   },
   {
     id: 5,
+    name: 'HACHA DE GUERRA',
+    damage: 110,
+    speed: 60,
+    range: 2,
+    description: 'Poderosa y versátil'
+  },
+  {
+    id: 6,
+    name: 'LANZA',
+    damage: 80,
+    speed: 60,
+    range: 2,
+    description: 'Alcance medio con buen daño'
+  },
+  {
+    id: 7,
+    name: 'LANZA DE PISTÓN',
+    damage: 90,
+    speed: 50,
+    range: 2,
+    description: 'Combina ataque y explosiones'
+  },
+  {
+    id: 8,
+    name: 'ESPADA DOBLE',
+    damage: 60,
+    speed: 90,
+    range: 1,
+    description: 'Ataques rápidos y furiosos'
+  },
+  {
+    id: 9,
+    name: 'CUERNO DE CAZA',
+    damage: 70,
+    speed: 70,
+    range: 1,
+    description: 'Apoya al equipo con melodías'
+  },
+  {
+    id: 10,
     name: 'ARCO',
     damage: 60,
     speed: 90,
@@ -125,12 +165,36 @@ const weapons = [
     description: 'Ataques rápidos a distancia'
   },
   {
-    id: 6,
-    name: 'BALISTA',
+    id: 11,
+    name: 'BALLESTA LIGERA',
+    damage: 50,
+    speed: 100,
+    range: 3,
+    description: 'Rápida y versátil'
+  },
+  {
+    id: 12,
+    name: 'BALLESTA PESADA',
     damage: 90,
     speed: 70,
     range: 3,
     description: 'Potente arma de proyectiles'
+  },
+  {
+    id: 13,
+    name: 'KATANA',
+    damage: 85,
+    speed: 75,
+    range: 2,
+    description: 'Elegante y letal'
+  },
+  {
+    id: 14,
+    name: 'MARTILLO DE PISTÓN',
+    damage: 105,
+    speed: 55,
+    range: 2,
+    description: 'Transformable y poderosa'
   }
 ];
 

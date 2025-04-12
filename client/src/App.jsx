@@ -10,6 +10,7 @@ import Instructions from './components/Instructions';
 import Credits from './components/Credits';
 import Multiplayer from './components/Multiplayer';
 import CreateRoom from './components/CreateRoom';
+import Achievements from './components/Achievements';
 import './styles/App.css';
 
 function App() {
@@ -35,6 +36,7 @@ function App() {
           <Route path="/credits" element={<Credits />} />
           <Route path="/multiplayer" element={<Multiplayer />} />
           <Route path="/multiplayer/create" element={<CreateRoom />} />
+          <Route path="/achievements" element={<Achievements />} />
         </Routes>
 
         {showSettings && (
