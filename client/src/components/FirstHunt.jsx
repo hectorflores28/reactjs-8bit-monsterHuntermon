@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import useGameStore from '../stores/gameStore';
 import ProgressionSystem from './ProgressionSystem';
 import InventorySystem from './InventorySystem';
+import MissionSystem from './MissionSystem';
 
 const HuntContainer = styled.div`
   width: 100vw;
@@ -221,6 +222,7 @@ const FirstHunt = () => {
     <HuntContainer>
       <ProgressionSystem />
       <InventorySystem />
+      <MissionSystem />
       <HealthBars>
         <HealthBar health={playerHealth} />
         <HealthBar health={monsterHealth} />
