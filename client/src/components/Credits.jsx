@@ -1,117 +1,122 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { motion } from 'framer-motion';
 
 const CreditsContainer = styled.div`
-  width: 100vw;
-  height: 100vh;
-  background: #000;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  font-family: 'Press Start 2P', cursive;
-  color: white;
-`;
-
-const Title = styled.h1`
-  color: #ffd700;
-  text-align: center;
-  margin-bottom: 2rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  align-items: center;
+  z-index: 1000;
 `;
 
 const CreditsBox = styled.div`
-  background: rgba(0, 0, 0, 0.8);
-  padding: 2rem;
-  border-radius: 10px;
-  border: 2px solid #ffd700;
+  background-color: #1a1a1a;
+  border: 4px solid #4a4a4a;
+  border-radius: 8px;
+  padding: 20px;
   width: 80%;
-  max-width: 600px;
-  overflow-y: auto;
-  max-height: 70vh;
+  max-width: 500px;
+  color: #fff;
+  font-family: 'Press Start 2P', cursive;
 `;
 
-const Section = styled.div`
-  margin-bottom: 2rem;
-`;
-
-const SectionTitle = styled.h2`
+const Title = styled.h2`
+  text-align: center;
+  margin-bottom: 30px;
   color: #ffd700;
-  font-size: 1.2rem;
-  margin-bottom: 1rem;
+  text-shadow: 2px 2px #000;
 `;
 
-const CreditText = styled.p`
-  font-size: 0.8rem;
-  line-height: 1.6;
-  margin-bottom: 0.5rem;
+const CreditSection = styled.div`
+  margin-bottom: 20px;
+`;
+
+const Role = styled.h3`
+  color: #ffd700;
+  margin-bottom: 10px;
+  font-size: 0.9em;
+`;
+
+const Name = styled.p`
+  font-size: 0.7em;
+  margin-bottom: 5px;
+`;
+
+const SpecialThanks = styled.div`
+  margin-top: 30px;
   text-align: center;
 `;
 
-const Button = styled(motion.button)`
-  background: #ffd700;
-  color: black;
+const ThanksTitle = styled.h3`
+  color: #ffd700;
+  margin-bottom: 15px;
+  font-size: 0.9em;
+`;
+
+const ThanksText = styled.p`
+  font-size: 0.7em;
+  line-height: 1.5;
+`;
+
+const Button = styled.button`
+  background-color: #4a4a4a;
+  color: #fff;
   border: none;
-  padding: 0.5rem 1rem;
-  font-family: 'Press Start 2P', cursive;
-  font-size: 0.8rem;
-  margin-top: 1rem;
+  padding: 10px 20px;
+  margin-top: 30px;
   cursor: pointer;
-  border-radius: 5px;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.8em;
+  transition: all 0.3s ease;
+  display: block;
+  margin: 0 auto;
 
   &:hover {
-    background: #ffed4a;
+    background-color: #ffd700;
+    color: #000;
   }
 `;
 
-const Credits = () => {
-  const navigate = useNavigate();
-
-  const handleBack = () => {
-    navigate('/menu');
-  };
-
+const Credits = ({ onClose }) => {
   return (
     <CreditsContainer>
-      <Title>CRÉDITOS</Title>
       <CreditsBox>
-        <Section>
-          <SectionTitle>DESARROLLO</SectionTitle>
-          <CreditText>Héctor Flores</CreditText>
-          <CreditText>Desarrollador Principal</CreditText>
-        </Section>
+        <Title>CRÉDITOS</Title>
 
-        <Section>
-          <SectionTitle>DISEÑO</SectionTitle>
-          <CreditText>Inspirado en Monster Hunter</CreditText>
-          <CreditText>Diseño de Interfaz: Héctor Flores</CreditText>
-          <CreditText>Diseño de Personajes: Héctor Flores</CreditText>
-        </Section>
+        <CreditSection>
+          <Role>DESARROLLO</Role>
+          <Name>Héctor Flores</Name>
+        </CreditSection>
 
-        <Section>
-          <SectionTitle>TECNOLOGÍAS</SectionTitle>
-          <CreditText>React</CreditText>
-          <CreditText>Styled Components</CreditText>
-          <CreditText>Framer Motion</CreditText>
-          <CreditText>LocalStorage</CreditText>
-        </Section>
+        <CreditSection>
+          <Role>DISEÑO</Role>
+          <Name>Héctor Flores</Name>
+        </CreditSection>
 
-        <Section>
-          <SectionTitle>AGRADECIMIENTOS</SectionTitle>
-          <CreditText>A todos los jugadores</CreditText>
-          <CreditText>A la comunidad de desarrollo</CreditText>
-          <CreditText>A los fans de Monster Hunter</CreditText>
-        </Section>
+        <CreditSection>
+          <Role>MÚSICA Y SONIDOS</Role>
+          <Name>Héctor Flores</Name>
+        </CreditSection>
 
-        <Button
-          onClick={handleBack}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          VOLVER
-        </Button>
+        <CreditSection>
+          <Role>TESTING</Role>
+          <Name>Héctor Flores</Name>
+        </CreditSection>
+
+        <SpecialThanks>
+          <ThanksTitle>AGRADECIMIENTOS ESPECIALES</ThanksTitle>
+          <ThanksText>
+            A todos los que han apoyado este proyecto
+            y han contribuido con sus ideas y sugerencias.
+          </ThanksText>
+        </SpecialThanks>
+
+        <Button onClick={onClose}>VOLVER</Button>
       </CreditsBox>
     </CreditsContainer>
   );

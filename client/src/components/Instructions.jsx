@@ -1,137 +1,144 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { motion } from 'framer-motion';
 
 const InstructionsContainer = styled.div`
-  width: 100vw;
-  height: 100vh;
-  background: #000;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  font-family: 'Press Start 2P', cursive;
-  color: white;
-`;
-
-const Title = styled.h1`
-  color: #ffd700;
-  text-align: center;
-  margin-bottom: 2rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  align-items: center;
+  z-index: 1000;
 `;
 
 const InstructionsBox = styled.div`
-  background: rgba(0, 0, 0, 0.8);
-  padding: 2rem;
-  border-radius: 10px;
-  border: 2px solid #ffd700;
+  background-color: #1a1a1a;
+  border: 4px solid #4a4a4a;
+  border-radius: 8px;
+  padding: 20px;
   width: 80%;
-  max-width: 800px;
+  max-width: 600px;
+  color: #fff;
+  font-family: 'Press Start 2P', cursive;
+  max-height: 80vh;
   overflow-y: auto;
-  max-height: 70vh;
+`;
+
+const Title = styled.h2`
+  text-align: center;
+  margin-bottom: 30px;
+  color: #ffd700;
+  text-shadow: 2px 2px #000;
 `;
 
 const Section = styled.div`
-  margin-bottom: 2rem;
+  margin-bottom: 20px;
 `;
 
-const SectionTitle = styled.h2`
+const Subtitle = styled.h3`
   color: #ffd700;
-  font-size: 1.2rem;
-  margin-bottom: 1rem;
+  margin-bottom: 15px;
+  font-size: 0.9em;
 `;
 
-const InstructionText = styled.p`
-  font-size: 0.8rem;
-  line-height: 1.6;
-  margin-bottom: 1rem;
+const Text = styled.p`
+  font-size: 0.7em;
+  line-height: 1.5;
+  margin-bottom: 15px;
 `;
 
-const Button = styled(motion.button)`
-  background: #ffd700;
-  color: black;
-  border: none;
-  padding: 0.5rem 1rem;
-  font-family: 'Press Start 2P', cursive;
-  font-size: 0.8rem;
-  margin-top: 1rem;
-  cursor: pointer;
-  border-radius: 5px;
+const List = styled.ul`
+  list-style-type: none;
+  padding-left: 0;
+  font-size: 0.7em;
+  line-height: 1.5;
+`;
 
-  &:hover {
-    background: #ffed4a;
+const ListItem = styled.li`
+  margin-bottom: 10px;
+  padding-left: 20px;
+  position: relative;
+
+  &:before {
+    content: "•";
+    color: #ffd700;
+    position: absolute;
+    left: 0;
   }
 `;
 
-const Instructions = () => {
-  const navigate = useNavigate();
+const Button = styled.button`
+  background-color: #4a4a4a;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  margin-top: 20px;
+  cursor: pointer;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.8em;
+  transition: all 0.3s ease;
+  display: block;
+  margin: 20px auto 0;
 
-  const handleBack = () => {
-    navigate('/menu');
-  };
+  &:hover {
+    background-color: #ffd700;
+    color: #000;
+  }
+`;
 
+const Instructions = ({ onClose }) => {
   return (
     <InstructionsContainer>
-      <Title>INSTRUCCIONES</Title>
       <InstructionsBox>
+        <Title>INSTRUCCIONES</Title>
+
         <Section>
-          <SectionTitle>CONTROLES BÁSICOS</SectionTitle>
-          <InstructionText>
-            - Usa las teclas de dirección para moverte<br />
-            - Presiona ESPACIO para interactuar<br />
-            - Usa ESC para abrir el menú
-          </InstructionText>
+          <Subtitle>CONTROLES BÁSICOS</Subtitle>
+          <List>
+            <ListItem>Usa las flechas del teclado para navegar por el menú</ListItem>
+            <ListItem>Presiona ENTER para seleccionar opciones</ListItem>
+            <ListItem>Usa ESPACIO para atacar en combate</ListItem>
+            <ListItem>Usa SHIFT para defender</ListItem>
+          </List>
         </Section>
 
         <Section>
-          <SectionTitle>COMBATE</SectionTitle>
-          <InstructionText>
-            - Botón ATAQUE: Realiza un ataque básico (consume stamina)<br />
-            - Botón DEFENSA: Bloquea ataques enemigos (consume stamina)<br />
-            - Observa tu barra de vida y stamina<br />
-            - Los monstruos tienen patrones de ataque únicos
-          </InstructionText>
+          <Subtitle>SISTEMA DE COMBATE</Subtitle>
+          <Text>
+            El combate se basa en un sistema de turnos donde debes gestionar tu estamina
+            y vida mientras intentas derrotar al monstruo.
+          </Text>
+          <List>
+            <ListItem>Atacar consume estamina pero inflige daño</ListItem>
+            <ListItem>Defender reduce el daño recibido y recupera estamina</ListItem>
+            <ListItem>La estamina se recupera gradualmente cada turno</ListItem>
+          </List>
         </Section>
 
         <Section>
-          <SectionTitle>PROGRESIÓN</SectionTitle>
-          <InstructionText>
-            - Gana experiencia derrotando monstruos<br />
-            - Sube de nivel para mejorar tus estadísticas<br />
-            - Recolecta materiales para craftear equipo<br />
-            - Completa misiones para obtener recompensas
-          </InstructionText>
+          <Subtitle>ESTADÍSTICAS</Subtitle>
+          <List>
+            <ListItem>Vida: Determina cuánto daño puedes recibir</ListItem>
+            <ListItem>Estamina: Necesaria para realizar acciones</ListItem>
+            <ListItem>Daño: Afecta el daño que infliges</ListItem>
+            <ListItem>Defensa: Reduce el daño recibido</ListItem>
+          </List>
         </Section>
 
         <Section>
-          <SectionTitle>INVENTARIO</SectionTitle>
-          <InstructionText>
-            - Gestiona tus objetos y equipamiento<br />
-            - Usa pociones para recuperar vida<br />
-            - Equipa diferentes armas y armaduras<br />
-            - Recolecta materiales para crafteo
-          </InstructionText>
+          <Subtitle>CONSEJOS</Subtitle>
+          <List>
+            <ListItem>Mantén un ojo en tu estamina durante el combate</ListItem>
+            <ListItem>Usa la defensa estratégicamente para recuperar estamina</ListItem>
+            <ListItem>Los diferentes monstruos tienen diferentes patrones de ataque</ListItem>
+            <ListItem>El clima puede afectar tu rendimiento en combate</ListItem>
+          </List>
         </Section>
 
-        <Section>
-          <SectionTitle>CONSEJOS</SectionTitle>
-          <InstructionText>
-            - Observa el clima, afecta al combate<br />
-            - Mantén tu stamina para emergencias<br />
-            - Aprende los patrones de los monstruos<br />
-            - Completa misiones diarias para progresar más rápido
-          </InstructionText>
-        </Section>
-
-        <Button
-          onClick={handleBack}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          VOLVER
-        </Button>
+        <Button onClick={onClose}>VOLVER</Button>
       </InstructionsBox>
     </InstructionsContainer>
   );

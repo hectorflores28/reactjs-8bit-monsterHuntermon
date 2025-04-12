@@ -2,214 +2,189 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
-import { useGameStore } from '../stores/gameStore';
 
-const CreationContainer = styled.div`
+const CharacterCreationContainer = styled.div`
   width: 100vw;
   height: 100vh;
-  background-color: #2c3e50;
+  background: #000;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   font-family: 'Press Start 2P', cursive;
-  color: #ecf0f1;
+  color: white;
 `;
 
-const CharacterPreview = styled.div`
-  width: 128px;
-  height: 128px;
-  background-color: #34495e;
-  border: 4px solid #f1c40f;
+const Title = styled.h1`
+  color: #ffd700;
+  text-align: center;
   margin-bottom: 2rem;
-  image-rendering: pixelated;
-  background-image: url(${props => props.sprite});
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 `;
 
-const CustomizationPanel = styled.div`
-  background-color: rgba(0, 0, 0, 0.8);
-  border: 4px solid #f1c40f;
-  border-radius: 10px;
+const Form = styled.form`
+  background: rgba(0, 0, 0, 0.8);
   padding: 2rem;
+  border-radius: 10px;
+  border: 2px solid #ffd700;
   width: 80%;
-  max-width: 600px;
+  max-width: 500px;
 `;
 
-const OptionGroup = styled.div`
+const FormGroup = styled.div`
   margin-bottom: 1.5rem;
 `;
 
-const OptionTitle = styled.h3`
-  color: #f1c40f;
-  margin-bottom: 1rem;
-  font-size: 1rem;
+const Label = styled.label`
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #ffd700;
 `;
 
-const OptionList = styled.div`
-  display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
-`;
-
-const OptionButton = styled(motion.button)`
-  padding: 0.5rem 1rem;
-  background-color: ${props => props.selected ? '#f1c40f' : '#34495e'};
-  color: ${props => props.selected ? '#000' : '#ecf0f1'};
-  border: 2px solid #f1c40f;
+const Input = styled.input`
+  width: 100%;
+  padding: 0.5rem;
+  background: #333;
+  border: 2px solid #4a4a4a;
   border-radius: 5px;
-  cursor: pointer;
+  color: white;
   font-family: 'Press Start 2P', cursive;
   font-size: 0.8rem;
-  
-  &:hover {
-    transform: scale(1.05);
+
+  &:focus {
+    outline: none;
+    border-color: #ffd700;
   }
 `;
 
-const StartButton = styled(motion.button)`
-  padding: 1rem 2rem;
-  background-color: #f1c40f;
-  color: #000;
-  border: none;
+const Select = styled.select`
+  width: 100%;
+  padding: 0.5rem;
+  background: #333;
+  border: 2px solid #4a4a4a;
   border-radius: 5px;
-  cursor: pointer;
+  color: white;
   font-family: 'Press Start 2P', cursive;
-  font-size: 1rem;
-  margin-top: 2rem;
-  
+  font-size: 0.8rem;
+
+  &:focus {
+    outline: none;
+    border-color: #ffd700;
+  }
+`;
+
+const Button = styled(motion.button)`
+  background: #ffd700;
+  color: black;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.8rem;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-top: 1rem;
+  width: 100%;
+
   &:hover {
-    background-color: #f39c12;
+    background: #ffed4a;
   }
 `;
 
 const CharacterCreation = () => {
   const navigate = useNavigate();
-  const { crearJugador } = useGameStore();
   const [character, setCharacter] = useState({
-    nombre: '',
-    genero: 'masculino',
-    clase: 'cazador',
-    colorPelo: 'negro',
-    colorRopa: 'azul'
+    name: '',
+    gender: 'masculino',
+    class: 'cazador',
+    hairColor: '#000000',
+    clothesColor: '#000000'
   });
 
-  const generos = ['masculino', 'femenino'];
-  const clases = ['cazador', 'cazadora', 'artillero', 'artillera'];
-  const coloresPelo = ['negro', 'rubio', 'castaño', 'rojo'];
-  const coloresRopa = ['azul', 'rojo', 'verde', 'negro'];
-
-  const handleStart = () => {
-    if (!character.nombre.trim()) {
-      alert('Por favor, ingresa un nombre para tu personaje');
-      return;
-    }
-    crearJugador(character);
-    navigate('/home-scene');
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    localStorage.setItem('character', JSON.stringify(character));
+    navigate('/weapon-selection');
   };
 
-  const updateCharacter = (key, value) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
     setCharacter(prev => ({
       ...prev,
-      [key]: value
+      [name]: value
     }));
   };
 
   return (
-    <CreationContainer>
-      <CharacterPreview sprite={`/assets/characters/${character.genero}-${character.clase}-${character.colorPelo}-${character.colorRopa}.png`} />
-      
-      <CustomizationPanel>
-        <OptionGroup>
-          <OptionTitle>NOMBRE</OptionTitle>
-          <input
+    <CharacterCreationContainer>
+      <Title>CREACIÓN DE PERSONAJE</Title>
+      <Form onSubmit={handleSubmit}>
+        <FormGroup>
+          <Label>NOMBRE</Label>
+          <Input
             type="text"
-            value={character.nombre}
-            onChange={(e) => updateCharacter('nombre', e.target.value)}
-            style={{
-              width: '100%',
-              padding: '0.5rem',
-              fontFamily: "'Press Start 2P', cursive",
-              fontSize: '0.8rem',
-              backgroundColor: '#34495e',
-              color: '#ecf0f1',
-              border: '2px solid #f1c40f',
-              borderRadius: '5px'
-            }}
+            name="name"
+            value={character.name}
+            onChange={handleChange}
+            required
+            maxLength={12}
           />
-        </OptionGroup>
+        </FormGroup>
 
-        <OptionGroup>
-          <OptionTitle>GÉNERO</OptionTitle>
-          <OptionList>
-            {generos.map(genero => (
-              <OptionButton
-                key={genero}
-                selected={character.genero === genero}
-                onClick={() => updateCharacter('genero', genero)}
-              >
-                {genero.toUpperCase()}
-              </OptionButton>
-            ))}
-          </OptionList>
-        </OptionGroup>
+        <FormGroup>
+          <Label>GÉNERO</Label>
+          <Select
+            name="gender"
+            value={character.gender}
+            onChange={handleChange}
+          >
+            <option value="masculino">MASCULINO</option>
+            <option value="femenino">FEMENINO</option>
+          </Select>
+        </FormGroup>
 
-        <OptionGroup>
-          <OptionTitle>CLASE</OptionTitle>
-          <OptionList>
-            {clases.map(clase => (
-              <OptionButton
-                key={clase}
-                selected={character.clase === clase}
-                onClick={() => updateCharacter('clase', clase)}
-              >
-                {clase.toUpperCase()}
-              </OptionButton>
-            ))}
-          </OptionList>
-        </OptionGroup>
+        <FormGroup>
+          <Label>CLASE</Label>
+          <Select
+            name="class"
+            value={character.class}
+            onChange={handleChange}
+          >
+            <option value="cazador">CAZADOR</option>
+            <option value="cazadora">CAZADORA</option>
+            <option value="artillero">ARTILLERO</option>
+            <option value="artillera">ARTILLERA</option>
+          </Select>
+        </FormGroup>
 
-        <OptionGroup>
-          <OptionTitle>COLOR DE PELO</OptionTitle>
-          <OptionList>
-            {coloresPelo.map(color => (
-              <OptionButton
-                key={color}
-                selected={character.colorPelo === color}
-                onClick={() => updateCharacter('colorPelo', color)}
-              >
-                {color.toUpperCase()}
-              </OptionButton>
-            ))}
-          </OptionList>
-        </OptionGroup>
+        <FormGroup>
+          <Label>COLOR DE PELO</Label>
+          <Input
+            type="color"
+            name="hairColor"
+            value={character.hairColor}
+            onChange={handleChange}
+          />
+        </FormGroup>
 
-        <OptionGroup>
-          <OptionTitle>COLOR DE ROPA</OptionTitle>
-          <OptionList>
-            {coloresRopa.map(color => (
-              <OptionButton
-                key={color}
-                selected={character.colorRopa === color}
-                onClick={() => updateCharacter('colorRopa', color)}
-              >
-                {color.toUpperCase()}
-              </OptionButton>
-            ))}
-          </OptionList>
-        </OptionGroup>
+        <FormGroup>
+          <Label>COLOR DE ROPA</Label>
+          <Input
+            type="color"
+            name="clothesColor"
+            value={character.clothesColor}
+            onChange={handleChange}
+          />
+        </FormGroup>
 
-        <StartButton
-          onClick={handleStart}
+        <Button
+          type="submit"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          COMENZAR AVENTURA
-        </StartButton>
-      </CustomizationPanel>
-    </CreationContainer>
+          CONTINUAR
+        </Button>
+      </Form>
+    </CharacterCreationContainer>
   );
 };
 

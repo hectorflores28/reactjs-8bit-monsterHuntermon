@@ -1,3 +1,139 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Press Start 2P', cursive;
+  background-color: #000;
+  color: #fff;
+  line-height: 1.6;
+}
+
+.App {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Estilos para botones */
+button {
+  font-family: 'Press Start 2P', cursive;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  transform: scale(1.05);
+}
+
+/* Estilos para inputs */
+input, select {
+  font-family: 'Press Start 2P', cursive;
+  background-color: #333;
+  color: #fff;
+  border: 2px solid #4a4a4a;
+  padding: 8px;
+  border-radius: 4px;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: #ffd700;
+}
+
+/* Estilos para scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4a4a4a;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #ffd700;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* Estilos para modales */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #1a1a1a;
+  border: 4px solid #4a4a4a;
+  border-radius: 8px;
+  padding: 20px;
+  max-width: 500px;
+  width: 90%;
+  color: #fff;
+}
+
+/* Estilos para títulos */
+h1, h2, h3 {
+  color: #ffd700;
+  text-shadow: 2px 2px #000;
+  margin-bottom: 1rem;
+}
+
+/* Estilos para texto */
+p {
+  font-size: 0.8em;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+/* Estilos para listas */
+ul {
+  list-style-type: none;
+  padding-left: 0;
+}
+
+li {
+  margin-bottom: 0.5rem;
+  padding-left: 1rem;
+  position: relative;
+}
+
+li::before {
+  content: "•";
+  color: #ffd700;
+  position: absolute;
+  left: 0;
+}
+
 .app-container {
   width: 100vw;
   height: 100vh;
@@ -10,41 +146,10 @@
   align-items: center;
 }
 
-/* Estilos para scrollbar personalizada */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #1a1a2e;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #ff0000;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #ff3333;
-}
-
 /* Estilos para textos */
 h1, h2, h3, p {
   margin: 0;
   padding: 0;
-}
-
-/* Estilos para botones */
-button {
-  font-family: 'Press Start 2P', cursive;
-  cursor: pointer;
-  border: none;
-  outline: none;
-  transition: all 0.3s ease;
-}
-
-button:hover {
-  transform: scale(1.05);
 }
 
 button:active {

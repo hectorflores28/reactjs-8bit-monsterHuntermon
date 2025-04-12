@@ -1,152 +1,137 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import styled from 'styled-components';
-import { motion } from 'framer-motion';
 
 const SettingsContainer = styled.div`
-  width: 100vw;
-  height: 100vh;
-  background: #000;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
   display: flex;
-  flex-direction: column;
-  align-items: center;
   justify-content: center;
-  font-family: 'Press Start 2P', cursive;
-  color: white;
+  align-items: center;
+  z-index: 1000;
 `;
 
-const Title = styled.h1`
-  color: #ffd700;
-  text-align: center;
-  margin-bottom: 2rem;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-`;
-
-const SettingsMenu = styled.div`
-  background: rgba(0, 0, 0, 0.8);
-  padding: 2rem;
-  border-radius: 10px;
-  border: 2px solid #ffd700;
+const SettingsBox = styled.div`
+  background-color: #1a1a1a;
+  border: 4px solid #4a4a4a;
+  border-radius: 8px;
+  padding: 20px;
   width: 80%;
   max-width: 500px;
-`;
-
-const SettingItem = styled.div`
-  margin: 1rem 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-`;
-
-const Label = styled.span`
-  font-size: 0.9rem;
-`;
-
-const Slider = styled.input`
-  width: 150px;
-  margin-left: 1rem;
-`;
-
-const Button = styled(motion.button)`
-  background: #ffd700;
-  color: black;
-  border: none;
-  padding: 0.5rem 1rem;
+  color: #fff;
   font-family: 'Press Start 2P', cursive;
-  font-size: 0.8rem;
-  margin-top: 1rem;
+`;
+
+const Title = styled.h2`
+  text-align: center;
+  margin-bottom: 30px;
+  color: #ffd700;
+  text-shadow: 2px 2px #000;
+`;
+
+const SettingGroup = styled.div`
+  margin-bottom: 20px;
+`;
+
+const Label = styled.label`
+  display: block;
+  margin-bottom: 10px;
+  font-size: 0.8em;
+`;
+
+const Select = styled.select`
+  width: 100%;
+  padding: 10px;
+  background-color: #333;
+  color: #fff;
+  border: 2px solid #4a4a4a;
+  border-radius: 4px;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.7em;
+`;
+
+const Button = styled.button`
+  background-color: #4a4a4a;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  margin: 10px;
   cursor: pointer;
-  border-radius: 5px;
+  font-family: 'Press Start 2P', cursive;
+  font-size: 0.8em;
+  transition: all 0.3s ease;
 
   &:hover {
-    background: #ffed4a;
+    background-color: #ffd700;
+    color: #000;
   }
 `;
 
-const Settings = () => {
-  const navigate = useNavigate();
-  const [settings, setSettings] = useState({
-    musicVolume: 50,
-    sfxVolume: 70,
-    difficulty: 'normal',
-    language: 'es'
-  });
+const ButtonContainer = styled.div`
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+`;
 
-  useEffect(() => {
-    // Cargar configuraciones guardadas
-    const savedSettings = localStorage.getItem('gameSettings');
-    if (savedSettings) {
-      setSettings(JSON.parse(savedSettings));
-    }
-  }, []);
+const Settings = ({ onClose }) => {
+  const [difficulty, setDifficulty] = useState('normal');
+  const [musicVolume, setMusicVolume] = useState('medium');
+  const [soundEffects, setSoundEffects] = useState('on');
 
-  const handleSettingChange = (setting, value) => {
-    setSettings(prev => {
-      const newSettings = { ...prev, [setting]: value };
-      localStorage.setItem('gameSettings', JSON.stringify(newSettings));
-      return newSettings;
-    });
-  };
-
-  const handleBack = () => {
-    navigate('/menu');
+  const handleSave = () => {
+    // Aquí se implementará la lógica para guardar la configuración
+    onClose();
   };
 
   return (
     <SettingsContainer>
-      <Title>CONFIGURACIÓN</Title>
-      <SettingsMenu>
-        <SettingItem>
-          <Label>Música</Label>
-          <Slider
-            type="range"
-            min="0"
-            max="100"
-            value={settings.musicVolume}
-            onChange={(e) => handleSettingChange('musicVolume', e.target.value)}
-          />
-        </SettingItem>
-        <SettingItem>
-          <Label>Efectos</Label>
-          <Slider
-            type="range"
-            min="0"
-            max="100"
-            value={settings.sfxVolume}
-            onChange={(e) => handleSettingChange('sfxVolume', e.target.value)}
-          />
-        </SettingItem>
-        <SettingItem>
-          <Label>Dificultad</Label>
-          <select
-            value={settings.difficulty}
-            onChange={(e) => handleSettingChange('difficulty', e.target.value)}
-            style={{ padding: '5px', fontFamily: 'Press Start 2P' }}
+      <SettingsBox>
+        <Title>CONFIGURACIÓN</Title>
+        
+        <SettingGroup>
+          <Label>DIFICULTAD</Label>
+          <Select 
+            value={difficulty} 
+            onChange={(e) => setDifficulty(e.target.value)}
           >
-            <option value="easy">Fácil</option>
-            <option value="normal">Normal</option>
-            <option value="hard">Difícil</option>
-          </select>
-        </SettingItem>
-        <SettingItem>
-          <Label>Idioma</Label>
-          <select
-            value={settings.language}
-            onChange={(e) => handleSettingChange('language', e.target.value)}
-            style={{ padding: '5px', fontFamily: 'Press Start 2P' }}
+            <option value="easy">FÁCIL</option>
+            <option value="normal">NORMAL</option>
+            <option value="hard">DIFÍCIL</option>
+          </Select>
+        </SettingGroup>
+
+        <SettingGroup>
+          <Label>VOLUMEN MÚSICA</Label>
+          <Select 
+            value={musicVolume} 
+            onChange={(e) => setMusicVolume(e.target.value)}
           >
-            <option value="es">Español</option>
-            <option value="en">English</option>
-          </select>
-        </SettingItem>
-        <Button
-          onClick={handleBack}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          VOLVER
-        </Button>
-      </SettingsMenu>
+            <option value="off">SIN SONIDO</option>
+            <option value="low">BAJO</option>
+            <option value="medium">MEDIO</option>
+            <option value="high">ALTO</option>
+          </Select>
+        </SettingGroup>
+
+        <SettingGroup>
+          <Label>EFECTOS DE SONIDO</Label>
+          <Select 
+            value={soundEffects} 
+            onChange={(e) => setSoundEffects(e.target.value)}
+          >
+            <option value="on">ACTIVADO</option>
+            <option value="off">DESACTIVADO</option>
+          </Select>
+        </SettingGroup>
+
+        <ButtonContainer>
+          <Button onClick={handleSave}>GUARDAR</Button>
+          <Button onClick={onClose}>CANCELAR</Button>
+        </ButtonContainer>
+      </SettingsBox>
     </SettingsContainer>
   );
 };
