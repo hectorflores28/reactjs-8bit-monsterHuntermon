@@ -1,59 +1,67 @@
 import axios from 'axios';
 
-const API_URL = import.meta.env.VITE_APP_API_URL;
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
-export const saveGameData = async (userId, gameData) => {
-  try {
-    const token = localStorage.getItem('token');
-    const response = await axios.post(
-      `${API_URL}/api/cloud-save/save`,
-      { userId, gameData },
-      {
+export const cloudSaveService = {
+  // Guardar el estado del juego
+  async saveGameState(gameState) {
+    try {
+      const response = await axios.post(`${API_URL}/save`, gameState, {
         headers: {
-          Authorization: `Bearer ${token}`
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
-      }
-    );
-    return response.data;
-  } catch (error) {
-    console.error('Error al guardar los datos:', error);
-    throw error;
-  }
-};
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error al guardar el juego:', error);
+      throw error;
+    }
+  },
 
-export const loadGameData = async (userId) => {
-  try {
-    const token = localStorage.getItem('token');
-    const response = await axios.get(
-      `${API_URL}/api/cloud-save/load/${userId}`,
-      {
+  // Cargar el estado del juego
+  async loadGameState() {
+    try {
+      const response = await axios.get(`${API_URL}/save`, {
         headers: {
-          Authorization: `Bearer ${token}`
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
-      }
-    );
-    return response.data;
-  } catch (error) {
-    console.error('Error al cargar los datos:', error);
-    throw error;
-  }
-};
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error al cargar el juego:', error);
+      throw error;
+    }
+  },
 
-export const syncGameData = async (userId, localData) => {
-  try {
-    const token = localStorage.getItem('token');
-    const response = await axios.post(
-      `${API_URL}/api/cloud-save/sync`,
-      { userId, localData },
-      {
+  // Sincronizar el estado del juego
+  async syncGameState(gameState) {
+    try {
+      const response = await axios.put(`${API_URL}/save/sync`, gameState, {
         headers: {
-          Authorization: `Bearer ${token}`
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
         }
-      }
-    );
-    return response.data;
-  } catch (error) {
-    console.error('Error al sincronizar los datos:', error);
-    throw error;
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error al sincronizar el juego:', error);
+      throw error;
+    }
+  },
+
+  // Verificar el estado de la sincronización
+  async checkSyncStatus() {
+    try {
+      const response = await axios.get(`${API_URL}/save/status`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error al verificar el estado de sincronización:', error);
+      throw error;
+    }
   }
 }; 
