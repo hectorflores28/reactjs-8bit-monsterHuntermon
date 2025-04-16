@@ -1,8 +1,10 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
 const pool = require('./config/db');
+const cloudSaveRoutes = require('./routes/cloudSaveRoutes');
 
 // Cargar variables de entorno
 dotenv.config();
@@ -30,6 +32,7 @@ pool.getConnection()
 app.use('/api/jugadores', require('./routes/jugadores'));
 app.use('/api/monstruos', require('./routes/monstruos'));
 app.use('/api/armas', require('./routes/armas'));
+app.use('/api/cloud-save', cloudSaveRoutes);
 
 // Ruta de prueba
 app.get('/api/test', (req, res) => {
@@ -52,7 +55,11 @@ if (process.env.NODE_ENV === 'development') {
 // Manejo de errores
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(500).json({ message: '¡Algo salió mal!', error: err.message });
+    res.status(500).json({
+        success: false,
+        message: 'Error interno del servidor',
+        error: err.message
+    });
 });
 
 // Iniciar servidor
