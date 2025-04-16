@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { CloudSaveProvider } from './context/CloudSaveContext';
+import { EventProvider } from './context/EventContext';
+import { ComboProvider } from './context/ComboContext';
 import { CloudSaveStatus } from './components/CloudSaveStatus';
+import { EventListComponent } from './components/EventList';
+import { ComboDisplay } from './components/ComboDisplay';
 import styled from 'styled-components';
 import StartScreen from './components/StartScreen';
 import Menu from './components/Menu';
@@ -30,40 +34,55 @@ function App() {
 
   return (
     <CloudSaveProvider>
-      <Router>
-        <AppContainer>
-          <Routes>
-            <Route path="/" element={<StartScreen />} />
-            <Route path="/menu" element={<Menu 
-              onSettingsClick={() => setShowSettings(true)}
-              onInstructionsClick={() => setShowInstructions(true)}
-              onCreditsClick={() => setShowCredits(true)}
-            />} />
-            <Route path="/character-creation" element={<CharacterCreation />} />
-            <Route path="/weapon-selection" element={<WeaponSelection />} />
-            <Route path="/first-hunt" element={<FirstHunt />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="/instructions" element={<Instructions />} />
-            <Route path="/credits" element={<Credits />} />
-            <Route path="/multiplayer" element={<Multiplayer />} />
-            <Route path="/multiplayer/create" element={<CreateRoom />} />
-            <Route path="/achievements" element={<Achievements />} />
-          </Routes>
+      <EventProvider>
+        <ComboProvider>
+          <Router>
+            <AppContainer
+              onMouseDown={() => {
+                const { handleClickStart } = useCombo();
+                handleClickStart();
+              }}
+              onMouseUp={(e) => {
+                const { handleClickEnd } = useCombo();
+                handleClickEnd(e);
+              }}
+            >
+              <Routes>
+                <Route path="/" element={<StartScreen />} />
+                <Route path="/menu" element={<Menu 
+                  onSettingsClick={() => setShowSettings(true)}
+                  onInstructionsClick={() => setShowInstructions(true)}
+                  onCreditsClick={() => setShowCredits(true)}
+                />} />
+                <Route path="/character-creation" element={<CharacterCreation />} />
+                <Route path="/weapon-selection" element={<WeaponSelection />} />
+                <Route path="/first-hunt" element={<FirstHunt />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/instructions" element={<Instructions />} />
+                <Route path="/credits" element={<Credits />} />
+                <Route path="/multiplayer" element={<Multiplayer />} />
+                <Route path="/multiplayer/create" element={<CreateRoom />} />
+                <Route path="/achievements" element={<Achievements />} />
+                <Route path="/events" element={<EventListComponent />} />
+              </Routes>
 
-          {showSettings && (
-            <Settings onClose={() => setShowSettings(false)} />
-          )}
+              {showSettings && (
+                <Settings onClose={() => setShowSettings(false)} />
+              )}
 
-          {showInstructions && (
-            <Instructions onClose={() => setShowInstructions(false)} />
-          )}
+              {showInstructions && (
+                <Instructions onClose={() => setShowInstructions(false)} />
+              )}
 
-          {showCredits && (
-            <Credits onClose={() => setShowCredits(false)} />
-          )}
-          <CloudSaveStatus />
-        </AppContainer>
-      </Router>
+              {showCredits && (
+                <Credits onClose={() => setShowCredits(false)} />
+              )}
+              <CloudSaveStatus />
+              <ComboDisplay />
+            </AppContainer>
+          </Router>
+        </ComboProvider>
+      </EventProvider>
     </CloudSaveProvider>
   );
 }
