@@ -2,189 +2,202 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { motion } from 'framer-motion';
+import CharacterPreview from './CharacterPreview';
 
-const CharacterCreationContainer = styled.div`
-  width: 100vw;
-  height: 100vh;
-  background: #000;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-family: 'Press Start 2P', cursive;
-  color: white;
+const Container = styled.div`
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  background: rgba(0, 0, 0, 0.8);
+  border-radius: 15px;
+  border: 2px solid #ffd700;
 `;
 
 const Title = styled.h1`
   color: #ffd700;
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 30px;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 `;
 
 const Form = styled.form`
-  background: rgba(0, 0, 0, 0.8);
-  padding: 2rem;
-  border-radius: 10px;
-  border: 2px solid #ffd700;
-  width: 80%;
-  max-width: 500px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
 `;
 
 const FormGroup = styled.div`
-  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 `;
 
 const Label = styled.label`
-  display: block;
-  margin-bottom: 0.5rem;
-  color: #ffd700;
+  color: #fff;
+  font-size: 1.1rem;
 `;
 
 const Input = styled.input`
-  width: 100%;
-  padding: 0.5rem;
-  background: #333;
-  border: 2px solid #4a4a4a;
+  padding: 10px;
   border-radius: 5px;
-  color: white;
-  font-family: 'Press Start 2P', cursive;
-  font-size: 0.8rem;
+  border: 2px solid #ffd700;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 1rem;
 
   &:focus {
     outline: none;
-    border-color: #ffd700;
+    box-shadow: 0 0 5px #ffd700;
   }
 `;
 
 const Select = styled.select`
-  width: 100%;
-  padding: 0.5rem;
-  background: #333;
-  border: 2px solid #4a4a4a;
+  padding: 10px;
   border-radius: 5px;
-  color: white;
-  font-family: 'Press Start 2P', cursive;
-  font-size: 0.8rem;
+  border: 2px solid #ffd700;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 1rem;
 
   &:focus {
     outline: none;
-    border-color: #ffd700;
+    box-shadow: 0 0 5px #ffd700;
   }
 `;
 
-const Button = styled(motion.button)`
-  background: #ffd700;
-  color: black;
-  border: none;
-  padding: 0.5rem 1rem;
-  font-family: 'Press Start 2P', cursive;
-  font-size: 0.8rem;
-  cursor: pointer;
-  border-radius: 5px;
-  margin-top: 1rem;
+const ColorInput = styled.input`
   width: 100%;
+  height: 40px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+
+  &::-webkit-color-swatch-wrapper {
+    padding: 0;
+  }
+
+  &::-webkit-color-swatch {
+    border: 2px solid #ffd700;
+    border-radius: 5px;
+  }
+`;
+
+const Button = styled.button`
+  grid-column: 1 / -1;
+  padding: 15px;
+  background: #ffd700;
+  color: #000;
+  border: none;
+  border-radius: 5px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
 
   &:hover {
-    background: #ffed4a;
+    background: #ffc107;
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 `;
 
 const CharacterCreation = () => {
   const navigate = useNavigate();
-  const [character, setCharacter] = useState({
+  const [formData, setFormData] = useState({
     name: '',
     gender: 'masculino',
-    class: 'cazador',
-    hairColor: '#000000',
-    clothesColor: '#000000'
+    characterClass: 'cazador',
+    hairColor: '#8B4513',
+    clothesColor: '#4169E1'
   });
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    localStorage.setItem('character', JSON.stringify(character));
-    navigate('/weapon-selection');
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setCharacter(prev => ({
+    setFormData(prev => ({
       ...prev,
       [name]: value
     }));
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    localStorage.setItem('character', JSON.stringify(formData));
+    navigate('/weapon-selection');
+  };
+
   return (
-    <CharacterCreationContainer>
-      <Title>CREACIÓN DE PERSONAJE</Title>
+    <Container>
+      <Title>Creación de Personaje</Title>
       <Form onSubmit={handleSubmit}>
         <FormGroup>
-          <Label>NOMBRE</Label>
+          <Label>Nombre</Label>
           <Input
             type="text"
             name="name"
-            value={character.name}
+            value={formData.name}
             onChange={handleChange}
             required
-            maxLength={12}
           />
         </FormGroup>
 
         <FormGroup>
-          <Label>GÉNERO</Label>
+          <Label>Género</Label>
           <Select
             name="gender"
-            value={character.gender}
+            value={formData.gender}
             onChange={handleChange}
           >
-            <option value="masculino">MASCULINO</option>
-            <option value="femenino">FEMENINO</option>
+            <option value="masculino">Masculino</option>
+            <option value="femenino">Femenino</option>
           </Select>
         </FormGroup>
 
         <FormGroup>
-          <Label>CLASE</Label>
+          <Label>Clase</Label>
           <Select
-            name="class"
-            value={character.class}
+            name="characterClass"
+            value={formData.characterClass}
             onChange={handleChange}
           >
-            <option value="cazador">CAZADOR</option>
-            <option value="cazadora">CAZADORA</option>
-            <option value="artillero">ARTILLERO</option>
-            <option value="artillera">ARTILLERA</option>
+            <option value="cazador">Cazador</option>
+            <option value="artillero">Artillero</option>
           </Select>
         </FormGroup>
 
         <FormGroup>
-          <Label>COLOR DE PELO</Label>
-          <Input
+          <Label>Color de Pelo</Label>
+          <ColorInput
             type="color"
             name="hairColor"
-            value={character.hairColor}
+            value={formData.hairColor}
             onChange={handleChange}
           />
         </FormGroup>
 
         <FormGroup>
-          <Label>COLOR DE ROPA</Label>
-          <Input
+          <Label>Color de Ropa</Label>
+          <ColorInput
             type="color"
             name="clothesColor"
-            value={character.clothesColor}
+            value={formData.clothesColor}
             onChange={handleChange}
           />
         </FormGroup>
 
-        <Button
-          type="submit"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          CONTINUAR
-        </Button>
+        <CharacterPreview
+          gender={formData.gender}
+          characterClass={formData.characterClass}
+          hairColor={formData.hairColor}
+          clothesColor={formData.clothesColor}
+        />
+
+        <Button type="submit">Crear Personaje</Button>
       </Form>
-    </CharacterCreationContainer>
+    </Container>
   );
 };
 

@@ -15,11 +15,14 @@ import { SOUNDS, playSound } from '../config/sounds';
 const HuntContainer = styled.div`
   width: 100vw;
   height: 100vh;
-  background: url('/assets/hunt-background.png') no-repeat center center;
-  background-size: cover;
+  background: #000;
   position: relative;
   overflow: hidden;
   font-family: 'Press Start 2P', cursive;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 `;
 
 const HealthBars = styled.div`
@@ -33,6 +36,7 @@ const HealthBars = styled.div`
   padding: 10px;
   background: rgba(0, 0, 0, 0.7);
   border-radius: 10px;
+  z-index: 10;
 `;
 
 const HealthBar = styled.div`
@@ -75,6 +79,7 @@ const StaminaBar = styled.div`
   border-radius: 5px;
   overflow: hidden;
   padding: 5px;
+  z-index: 10;
   
   &::before {
     content: '';
@@ -100,12 +105,13 @@ const Character = styled(motion.div)`
   position: absolute;
   width: 64px;
   height: 64px;
-  background: url(${props => props.sprite}) no-repeat;
+  background: url(${props => props.sprite || '/assets/characters/default.png'}) no-repeat;
   background-size: contain;
   bottom: 20%;
   left: 20%;
   image-rendering: pixelated;
   filter: drop-shadow(2px 2px 0 #000);
+  z-index: 5;
 `;
 
 const Monster = styled(motion.div)`
@@ -118,6 +124,7 @@ const Monster = styled(motion.div)`
   right: 20%;
   image-rendering: pixelated;
   filter: drop-shadow(2px 2px 0 #000);
+  z-index: 5;
 `;
 
 const Controls = styled.div`
@@ -130,6 +137,7 @@ const Controls = styled.div`
   background: rgba(0, 0, 0, 0.7);
   padding: 10px;
   border-radius: 10px;
+  z-index: 10;
 `;
 
 const Button = styled(motion.button)`
@@ -169,6 +177,7 @@ const DialogBox = styled(motion.div)`
   line-height: 1.5;
   text-align: center;
   box-shadow: 0 0 10px rgba(241, 196, 15, 0.5);
+  z-index: 10;
 `;
 
 const DamageIndicator = styled(motion.div)`
@@ -178,6 +187,7 @@ const DamageIndicator = styled(motion.div)`
   font-weight: bold;
   text-shadow: 2px 2px 0 #000;
   pointer-events: none;
+  z-index: 20;
 `;
 
 const TutorialTip = styled(motion.div)`
@@ -254,6 +264,11 @@ const FirstHunt = () => {
   ];
 
   useEffect(() => {
+    if (!jugador) {
+      navigate('/character-creation');
+      return;
+    }
+
     const timer = setTimeout(() => {
       if (dialogIndex < dialogs.length - 1) {
         setDialogIndex(prev => prev + 1);
@@ -263,7 +278,7 @@ const FirstHunt = () => {
     }, 3000);
 
     return () => clearTimeout(timer);
-  }, [dialogIndex]);
+  }, [dialogIndex, jugador, navigate]);
 
   useEffect(() => {
     if (tutorialStep < tutorialTips.length - 1) {
@@ -296,7 +311,11 @@ const FirstHunt = () => {
         if (newHealth <= 0) {
           playSound(SOUNDS.COMBAT.VICTORY);
           progressionSystem.addExperience(50);
-          setDialogIndex(3);
+          actualizarJugador({
+            experiencia: jugador.experiencia + 100,
+            zenny: jugador.zenny + 500
+          });
+          setTimeout(() => navigate('/menu'), 2000);
         } else {
           playSound(SOUNDS.COMBAT.ATTACK);
           setTimeout(() => playSound(SOUNDS.COMBAT.HIT), 200);
@@ -310,7 +329,6 @@ const FirstHunt = () => {
       setIsAttacking(true);
       addDamageIndicator(finalDamage, { x: '70%', y: '40%' }, isCritical);
       
-      // Mostrar tutorial de daño crítico
       if (isCritical && tutorialStep === 4) {
         setShowTutorialTip(true);
         setTutorialStep(4);
@@ -319,7 +337,6 @@ const FirstHunt = () => {
       setTimeout(() => {
         setIsAttacking(false);
         
-        // Monstruo contraataca
         setTimeout(() => {
           if (!isDefending) {
             setIsMonsterAttacking(true);
@@ -346,20 +363,10 @@ const FirstHunt = () => {
   };
 
   useEffect(() => {
-    if (monsterHealth === 0) {
-      actualizarJugador({
-        experiencia: jugador.experiencia + 100,
-        zenny: jugador.zenny + 500
-      });
-      setTimeout(() => navigate('/menu'), 2000);
-    }
-  }, [monsterHealth]);
-
-  useEffect(() => {
     if (playerHealth === 0) {
       setTimeout(() => navigate('/menu'), 2000);
     }
-  }, [playerHealth]);
+  }, [playerHealth, navigate]);
 
   return (
     <HuntContainer>
@@ -370,7 +377,7 @@ const FirstHunt = () => {
       <WeatherSystem />
       <StatusSystem />
       <HealthBars>
-        <HealthBar health={playerHealth} name={jugador?.name} />
+        <HealthBar health={playerHealth} name={jugador?.name || 'Cazador'} />
         <HealthBar health={monsterHealth} name="Jagras" />
       </HealthBars>
 
@@ -386,9 +393,8 @@ const FirstHunt = () => {
 
       <Monster
         animate={{
-          x: isMonsterAttacking ? [-50, 0] : 0,
-          scale: isMonsterAttacking ? 1.2 : 1,
-          filter: isMonsterAttacking ? 'brightness(1.5)' : 'brightness(1)'
+          x: isMonsterAttacking ? [-50, 0, -50] : 0,
+          scale: isMonsterAttacking ? 1.2 : 1
         }}
         transition={{ duration: 0.5 }}
       />
@@ -398,7 +404,7 @@ const FirstHunt = () => {
       <Controls>
         <Button
           onClick={handleAttack}
-          disabled={stamina < 20 || isAttacking}
+          disabled={stamina < 20}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
@@ -406,7 +412,7 @@ const FirstHunt = () => {
         </Button>
         <Button
           onClick={handleDefend}
-          disabled={stamina < 10 || isDefending}
+          disabled={stamina < 10}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
@@ -431,9 +437,8 @@ const FirstHunt = () => {
         {damageIndicators.map(({ id, damage, position, isCritical }) => (
           <DamageIndicator
             key={id}
-            initial={{ opacity: 1, y: 0, scale: 1 }}
-            animate={{ opacity: 0, y: -50, scale: isCritical ? 1.5 : 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 1, y: 0 }}
+            animate={{ opacity: 0, y: -50 }}
             transition={{ duration: 1 }}
             style={{
               left: position.x,
