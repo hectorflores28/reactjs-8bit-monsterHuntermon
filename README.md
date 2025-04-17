@@ -6,6 +6,9 @@
 ![License](https://img.shields.io/badge/License-MIT-yellow.svg)
 
 ## Descripción
+![Menu](public/screenshot.png)
+![Creacion-De-Personaje](public/screenshot1.png)
+![Seleccion-De-Armas](public/screenshot2.png)
 MonsterHanter es un juego de caza de monstruos con estilo retro 8 bits, donde los jugadores pueden crear su personaje, seleccionar armas y embarcarse en emocionantes cacerías.
 
 ## Características
