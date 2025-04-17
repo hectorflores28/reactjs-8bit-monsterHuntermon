@@ -96,7 +96,7 @@ const Menu = ({ onSettingsClick, onInstructionsClick, onCreditsClick }) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        MONSTER HUNTER
+        MONSTER HANTER
       </MenuTitle>
       <MenuOptions>
         {menuOptions.map((option, index) => (

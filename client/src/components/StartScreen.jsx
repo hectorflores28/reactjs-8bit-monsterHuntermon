@@ -59,7 +59,7 @@ const StartScreen = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1 }}
       >
-        MONSTER HUNTER
+        MONSTER HANTER
       </Title>
       <Subtitle
         initial={{ opacity: 0 }}
